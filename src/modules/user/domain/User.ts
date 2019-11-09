@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Product } from '../../product/domain/Product';
 import { UserRole } from '../enums/UserRole';
 
 @Entity()
@@ -16,6 +17,9 @@ export class User {
 
   @Column({ unique: true })
   public email: string;
+
+  @OneToMany(() => Product, product => product.user)
+  public products: Product[];
 
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })

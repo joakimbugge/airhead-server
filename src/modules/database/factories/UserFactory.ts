@@ -1,13 +1,14 @@
 import { define } from 'typeorm-seeding';
 import { HashUtils } from '../../../utils/HashUtils';
 import { User } from '../../user/domain/User';
+import FakerStatic = Faker.FakerStatic;
 
-define(User, () => {
+define(User, (faker: FakerStatic) => {
   const user = new User();
 
-  user.username = 'Test';
+  user.username = faker.internet.userName();
   user.password = HashUtils.createHash('123');
-  user.email = 'joakim.bugge@gmail.com';
+  user.email = faker.internet.exampleEmail();
 
   return user;
 });

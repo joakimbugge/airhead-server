@@ -1,11 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthenticationModule } from './modules/authentication/AuthenticationModule';
-import { ConfigModule } from './modules/config/ConfigModule';
-import { DatabaseModule } from './modules/database/DatabaseModule';
-import { UserModule } from './modules/user/UserModule';
+import { metadata } from './server/metadata';
 
-@Module({
-  imports: [DatabaseModule, UserModule, AuthenticationModule, ConfigModule],
-})
+@Module(metadata)
 export class AppModule {
 }

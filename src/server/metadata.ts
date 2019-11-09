@@ -1,0 +1,9 @@
+import { AuthenticationModule } from '../modules/authentication/AuthenticationModule';
+import { ConfigModule } from '../modules/config/ConfigModule';
+import { DatabaseModule } from '../modules/database/DatabaseModule';
+import { ProductModule } from '../modules/product/ProductModule';
+import { UserModule } from '../modules/user/UserModule';
+
+export const metadata = {
+  imports: [DatabaseModule, UserModule, AuthenticationModule, ConfigModule, ProductModule],
+};
