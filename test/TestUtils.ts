@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { getRepository } from 'typeorm';
+import { Product } from '../src/modules/product/domain/Product';
 import { User } from '../src/modules/user/domain/User';
 import { getErrorFilters, getInterceptors, getPipes } from '../src/server/helpers';
 import { metadata } from '../src/server/metadata';
@@ -50,5 +51,16 @@ export abstract class TestUtils {
           resolve(res.body.token);
         });
     });
+  }
+
+  public static createProduct(name: string, user: User): Product {
+    const product = new Product();
+
+    product.name = name;
+    product.amount = 1;
+    product.amountThreshold = 2;
+    product.user = user;
+
+    return product;
   }
 }
