@@ -1,8 +1,8 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
+import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
 import * as request from 'supertest';
 import { FindConditions, getRepository } from 'typeorm';
-import { ProductController } from '../../src/modules/product/controllers/ProductController';
 import { Product } from '../../src/modules/product/domain/Product';
 import { CreateProductDto } from '../../src/modules/product/dtos/CreateProductDto';
 import { UpdateProductDto } from '../../src/modules/product/dtos/UpdateProductDto';
@@ -10,11 +10,9 @@ import { User } from '../../src/modules/user/domain/User';
 import { TestUtils } from '../TestUtils';
 
 let app: INestApplication;
-let productController: ProductController;
 
 beforeEach(async () => {
   app = await TestUtils.startApplication();
-  productController = app.get(ProductController);
 });
 
 afterEach(async () => TestUtils.shutdown(app));
@@ -44,7 +42,7 @@ describe('Get products', () => {
     return request(app.getHttpServer())
       .get(`/api/products`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.OK)
+      .expect(OK)
       .then(async res => {
         expect(res.body).toHaveLength(0);
       });
@@ -59,7 +57,7 @@ describe('Get products', () => {
     return request(app.getHttpServer())
       .get(`/api/products`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.OK)
+      .expect(OK)
       .then(async res => {
         const { body } = res;
 
@@ -78,7 +76,7 @@ describe('Get product', () => {
     return request(app.getHttpServer())
       .get(`/api/products/999`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.NOT_FOUND);
+      .expect(NOT_FOUND);
   });
 
   test('Valid payload', async () => {
@@ -89,7 +87,7 @@ describe('Get product', () => {
     return request(app.getHttpServer())
       .get(`/api/products/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.OK)
+      .expect(OK)
       .then(async () => {
         const existingProduct = getProduct({ id: product.id });
         expect(product).toMatchObject(existingProduct);
@@ -110,7 +108,7 @@ describe('Create product', () => {
       .post('/api/products')
       .auth(token, { type: 'bearer' })
       .send(product)
-      .expect(HttpStatus.BAD_REQUEST)
+      .expect(BAD_REQUEST)
       .then(async () => {
         const savedProduct = await getProduct({ amount: 1 });
         expect(savedProduct).toBeUndefined();
@@ -129,7 +127,7 @@ describe('Create product', () => {
       .post('/api/products')
       .auth(token, { type: 'bearer' })
       .send(product)
-      .expect(HttpStatus.BAD_REQUEST)
+      .expect(BAD_REQUEST)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
         expect(savedProduct).toBeUndefined();
@@ -148,7 +146,7 @@ describe('Create product', () => {
       .post('/api/products')
       .auth(token, { type: 'bearer' })
       .send(product)
-      .expect(HttpStatus.CREATED)
+      .expect(CREATED)
       .then(res => {
         const { body } = res;
 
@@ -173,7 +171,7 @@ describe('Update product', () => {
       .put(`/api/products/${existingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(product)
-      .expect(HttpStatus.BAD_REQUEST)
+      .expect(BAD_REQUEST)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
         expect(savedProduct).toMatchObject(existingProduct);
@@ -197,7 +195,7 @@ describe('Update product', () => {
       .put(`/api/products/${otherExistingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(product)
-      .expect(HttpStatus.NOT_FOUND)
+      .expect(NOT_FOUND)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
         expect(savedProduct).toMatchObject(otherExistingProduct);
@@ -215,7 +213,7 @@ describe('Update product', () => {
       .put(`/api/products/${existingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(existingProduct)
-      .expect(HttpStatus.OK)
+      .expect(OK)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
         expect(savedProduct).toMatchObject(existingProduct);
@@ -231,7 +229,7 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`/api/products/999`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.NOT_FOUND);
+      .expect(NOT_FOUND);
   });
 
   test('Invalid payload: User does not own product', async () => {
@@ -243,7 +241,7 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`/api/products/${otherExistingProduct.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.NOT_FOUND)
+      .expect(NOT_FOUND)
       .then(async () => {
         const stillExistingProdduct = await getProduct({ id: otherExistingProduct.id });
         expect(stillExistingProdduct.deletedAt).toBeNull();
@@ -258,7 +256,7 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`/api/products/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(HttpStatus.OK)
+      .expect(OK)
       .then(async () => {
         const deletedProduct = await getProduct({ id: product.id });
         expect(deletedProduct.deletedAt).not.toBeNull();
