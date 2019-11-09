@@ -8,7 +8,7 @@ export abstract class Service<T> {
     return this.repository.findOne(conditions, options);
   }
 
-  public findMany(conditions?: FindConditions<T>): Promise<T[]> {
+  public findMany(conditions: FindConditions<T>): Promise<T[]> {
     return this.repository.find(conditions);
   }
 
