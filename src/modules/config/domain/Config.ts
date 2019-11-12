@@ -22,4 +22,6 @@ export class Config {
   public DB_LOGGING: boolean = false;
   @Type(() => Number)
   public AUTH_DURATION: number = 3600 * 24;
+  public ASSETS_PATH = 'assets';
+  public IMAGES_PATH = `${this.ASSETS_PATH}/images`;
 }
