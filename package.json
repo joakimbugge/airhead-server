@@ -39,7 +39,9 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "rxjs": "^6.5.3",
-    "typeorm": "^0.2.20"
+    "sharp": "^0.23.2",
+    "typeorm": "^0.2.20",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^6.9.0",
@@ -51,7 +53,9 @@
     "@types/jest": "^24.0.18",
     "@types/node": "^12.12.7",
     "@types/passport-jwt": "^3.0.3",
+    "@types/sharp": "^0.23.0",
     "@types/supertest": "^2.0.8",
+    "@types/uuid": "^3.4.6",
     "cross-env": "^6.0.3",
     "faker": "^4.1.0",
     "husky": "^3.0.9",

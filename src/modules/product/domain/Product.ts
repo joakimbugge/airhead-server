@@ -21,6 +21,9 @@ export class Product {
   @Exclude({ toPlainOnly: true })
   public user: User;
 
+  @Column({ nullable: true })
+  public image: string;
+
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })
   public createdAt: Date;
