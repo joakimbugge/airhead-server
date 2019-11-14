@@ -60,7 +60,7 @@
     "faker": "^4.1.0",
     "husky": "^3.0.9",
     "jest": "^24.9.0",
-    "lint-staged": "^9.4.2",
+    "lint-staged": "^9.4.3",
     "sqlite3": "^4.1.0",
     "supertest": "^4.0.2",
     "ts-jest": "^24.1.0",
