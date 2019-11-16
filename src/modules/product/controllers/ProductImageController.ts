@@ -13,6 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import * as fs from 'fs';
 import { NO_CONTENT } from 'http-status-codes';
 import * as path from 'path';
@@ -33,7 +34,7 @@ export class ProductImageController {
 
   @Get('/:id/image')
   @Authenticated()
-  public async getImage(@Param('id') id: number, @Authed() user: User, @Res() response) {
+  public async getImage(@Param('id') id: number, @Authed() user: User, @Res() response: Response) {
     const product = await this.productService.get({ id, user });
     const filePath = `${this.configService.env.IMAGES_PATH}/${product.image}`;
 
