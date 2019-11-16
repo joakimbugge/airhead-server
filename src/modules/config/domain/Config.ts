@@ -24,4 +24,5 @@ export class Config {
   public AUTH_DURATION: number = 3600 * 24;
   public ASSETS_PATH = 'assets';
   public IMAGES_PATH = `${this.ASSETS_PATH}/images`;
+  public FORGOT_PASSWORD_TOKEN_LIFE_TIME: number = 3;
 }
