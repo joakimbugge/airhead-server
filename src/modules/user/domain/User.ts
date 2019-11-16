@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { ForgotPasswordToken } from '../../authentication/domain/ForgotPasswordToken';
 import { Product } from '../../product/domain/Product';
 import { UserRole } from '../enums/UserRole';
 
@@ -20,6 +21,9 @@ export class User {
 
   @OneToMany(() => Product, product => product.user)
   public products: Product[];
+
+  @OneToMany(() => ForgotPasswordToken, token => token.user)
+  public forgotPasswordTokens: ForgotPasswordToken[];
 
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })

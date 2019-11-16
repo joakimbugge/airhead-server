@@ -24,8 +24,20 @@ export abstract class Service<T> {
     return this.repository.save(entity);
   }
 
-  public delete(entity: T): Promise<T> {
-    (entity as any).deletedAt = new Date();
-    return this.repository.save(entity);
+  public delete(entity: T, softDelete = true): Promise<T> {
+    if (softDelete) {
+      (entity as any).deletedAt = new Date();
+      return this.repository.save(entity);
+    }
+
+    return this.repository.remove(entity);
+  }
+
+  public deleteMany(entities: T[], softDelete = true): Promise<T[]> {
+    if (softDelete) {
+      return this.repository.save(entities.map(entity => (entity as any).deletedAt = new Date()) as any[]);
+    }
+
+    return this.repository.remove(entities);
   }
 }
