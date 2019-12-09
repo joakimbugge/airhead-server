@@ -71,7 +71,7 @@
     "tsconfig-paths": "^3.9.0",
     "tslint": "^5.20.0",
     "typeorm-seeding": "^1.2.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.7.3"
   },
   "jest": {
     "moduleFileExtensions": [
