@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^6.13.1",
-    "@nestjs/schematics": "^6.7.6",
+    "@nestjs/schematics": "^6.8.0",
     "@nestjs/testing": "^6.10.14",
     "@types/bcrypt": "^3.0.0",
     "@types/date-fns": "^2.6.0",
