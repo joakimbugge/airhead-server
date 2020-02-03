@@ -57,7 +57,7 @@
     "@types/passport-jwt": "^3.0.3",
     "@types/sharp": "^0.24.0",
     "@types/supertest": "^2.0.8",
-    "@types/uuid": "^3.4.6",
+    "@types/uuid": "^3.4.7",
     "cross-env": "^6.0.3",
     "faker": "^4.1.0",
     "husky": "^4.2.1",
