@@ -1,0 +1,38 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # https://circleci.com/docs/2.0/circleci-images/
+      - image: circleci/node:10.14-stretch
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - app-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - app-dependencies-
+      - run: npm ci
+      - save_cache:
+          paths:
+            - node_modules
+          key: app-dependencies-{{ checksum "package.json" }}
+      - run: npm test
+  deploy:
+    docker:
+      - image: circleci/node:10.14-stretch
+    steps:
+      - checkout
+      - run: sudo npm i -g pm2
+      - run: pm2 deploy production
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

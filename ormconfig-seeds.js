@@ -16,7 +16,9 @@ module.exports = {
   username: config.DB_USERNAME,
   password: config.DB_PASSWORD,
   database: config.DB_NAME,
-  entities: ['./src/domain/**.ts'],
-  factories: ['./src/database/factories/**.ts'],
-  seeds: ['./src/database/seeds/**.ts'],
+  dropSchema: true,
+  synchronize: true,
+  entities: ['./src/**/domain/**.ts'],
+  factories: ['./src/modules/database/factories/**.ts'],
+  seeds: ['./src/modules/database/seeds/**.ts'],
 };

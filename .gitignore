@@ -1,10 +1,9 @@
 # Custom
-docs/swagger.json
-test/coverage/
-config/
-logs/*.log
-logs/*-audit.json
-
+/docs/swagger.json
+/test/coverage
+/config
+/logs/*.log
+/logs/*-audit.json
 
 # Compiled output
 /dist
