@@ -35,4 +35,4 @@ workflows:
             - build
           filters:
             branches:
-              only: pm2-deploy
+              only: master

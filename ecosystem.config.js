@@ -18,7 +18,7 @@ module.exports = {
     production: {
       user: process.env.DROPLET_USER,
       host: process.env.DROPLET_IP,
-      ref: 'origin/pm2-deploy',
+      ref: 'origin/master',
       repo: 'git@github.com:joakimbugge/airhead-server.git',
       path: '/root/apps',
       ssh_options: 'StrictHostKeyChecking=no',
