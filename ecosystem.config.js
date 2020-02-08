@@ -16,8 +16,8 @@ module.exports = {
   }],
   deploy: {
     production: {
-      user: 'root',
-      host: '157.230.122.90',
+      user: process.env.DROPLET_USER,
+      host: process.env.DROPLET_IP,
       ref: 'origin/pm2-deploy',
       repo: 'git@github.com:joakimbugge/airhead-server.git',
       path: '/root/apps',
