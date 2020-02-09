@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserAlreadyExistsError } from '../../../server/errors/UserAlreadyExistsError';
+import { UserAlreadyExistsException } from '../../../server/exceptions/UserAlreadyExistsException';
 import { Service } from '../../../services/Service';
 import { User } from '../domain/User';
 import { SqlError } from '../enums/SqlError';
@@ -19,7 +19,7 @@ export class UserService extends Service<User> {
       switch (err.code) {
         case SqlError.PostgresUniqueViolation:
         case SqlError.SqliteConstraint:
-          throw new UserAlreadyExistsError('Username or email already in use');
+          throw new UserAlreadyExistsException('Username or email already in use');
         default:
           throw err;
       }

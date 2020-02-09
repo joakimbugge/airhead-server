@@ -19,7 +19,7 @@ import { NO_CONTENT } from 'http-status-codes';
 import * as path from 'path';
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
-import { UnsupportedImageTypeError } from '../../../server/errors/UnsupportedImageTypeError';
+import { UnsupportedImageTypeException } from '../../../server/exceptions/UnsupportedImageTypeException';
 import { ConfigService } from '../../config/services/ConfigService';
 import { User } from '../../user/domain/User';
 import { ProductImageService } from '../services/ProductImageService';
@@ -27,9 +27,11 @@ import { ProductService } from '../services/ProductService';
 
 @Controller('products')
 export class ProductImageController {
-  constructor(private readonly productService: ProductService,
-              private readonly productImageService: ProductImageService,
-              private readonly configService: ConfigService) {
+  constructor(
+    private readonly productService: ProductService,
+    private readonly productImageService: ProductImageService,
+    private readonly configService: ConfigService,
+  ) {
   }
 
   @Get('/:id/image')
@@ -62,7 +64,7 @@ export class ProductImageController {
 
       await this.productService.save({ ...product, image: fileName }); // Add image to product
     } catch (e) {
-      if (e instanceof UnsupportedImageTypeError) {
+      if (e instanceof UnsupportedImageTypeException) {
         throw new BadRequestException(e.message);
       }
 

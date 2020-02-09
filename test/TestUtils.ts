@@ -4,7 +4,10 @@ import * as request from 'supertest';
 import { getRepository } from 'typeorm';
 import { Product } from '../src/modules/product/domain/Product';
 import { User } from '../src/modules/user/domain/User';
-import { getErrorFilters, getInterceptors, getPipes } from '../src/server/helpers';
+import { EntityNotFoundExceptionFilter } from '../src/server/exception-filters/EntityNotFoundExceptionFilter';
+import { UserAlreadyExistsExceptionFilter } from '../src/server/exception-filters/UserAlreadyExistsExceptionFilter';
+import { ValidationExceptionFilter } from '../src/server/exception-filters/ValidationExceptionFilter';
+import { getInterceptors, getPipes } from '../src/server/helpers';
 import { metadata } from '../src/server/metadata';
 import { HashUtils } from '../src/utils/HashUtils';
 
@@ -18,7 +21,11 @@ export abstract class TestUtils {
 
     app.setGlobalPrefix('api');
     app.useGlobalPipes(...getPipes());
-    app.useGlobalFilters(...getErrorFilters());
+    app.useGlobalFilters(...[
+      new EntityNotFoundExceptionFilter(),
+      new UserAlreadyExistsExceptionFilter(),
+      new ValidationExceptionFilter(),
+    ]);
     app.useGlobalInterceptors(...getInterceptors());
 
     return await app.init();

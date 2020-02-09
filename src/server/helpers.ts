@@ -1,11 +1,14 @@
-import { ExceptionFilter, NestInterceptor, PipeTransform, ValidationPipe } from '@nestjs/common';
+import { ExceptionFilter, HttpServer, NestInterceptor, PipeTransform, ValidationPipe } from '@nestjs/common';
+import { LogService } from '../modules/logging/services/LogService';
 import { EntityNotFoundExceptionFilter } from './exception-filters/EntityNotFoundExceptionFilter';
+import { UnhandledExceptionFilter } from './exception-filters/UnhandledExceptionFilter';
 import { UserAlreadyExistsExceptionFilter } from './exception-filters/UserAlreadyExistsExceptionFilter';
 import { ValidationExceptionFilter } from './exception-filters/ValidationExceptionFilter';
 import { TransformInterceptor } from './interceptors/TransformInterceptor';
 
-export function getErrorFilters(): ExceptionFilter[] {
+export function getExceptionFilters(httpServer: HttpServer, logService: LogService): ExceptionFilter[] {
   return [
+    new UnhandledExceptionFilter(httpServer, logService),
     new EntityNotFoundExceptionFilter(),
     new UserAlreadyExistsExceptionFilter(),
     new ValidationExceptionFilter(),

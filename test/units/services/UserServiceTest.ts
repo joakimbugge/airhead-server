@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 import { User } from '../../../src/modules/user/domain/User';
 import { UserService } from '../../../src/modules/user/services/UserService';
-import { UserAlreadyExistsError } from '../../../src/server/errors/UserAlreadyExistsError';
+import { UserAlreadyExistsException } from '../../../src/server/exceptions/UserAlreadyExistsException';
 import { TestUtils } from '../../TestUtils';
 
 let app: TestingModule;
@@ -54,7 +54,7 @@ describe('save()', () => {
 
     await service.save(firstUser);
 
-    return expect(service.save(secondUser)).rejects.toThrow(UserAlreadyExistsError);
+    return expect(service.save(secondUser)).rejects.toThrow(UserAlreadyExistsException);
   });
 });
 
