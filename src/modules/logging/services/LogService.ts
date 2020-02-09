@@ -42,6 +42,13 @@ export class LogService {
           level: 'info',
           filename: 'all.%DATE%.log',
         }),
+        new DailyRotateFile({
+          dirname: this.config.env.LOGS_PATH,
+          maxFiles: '7d',
+          datePattern: 'YYYY-MM-DD',
+          level: 'error',
+          filename: 'error.%DATE%.log',
+        }),
         new transports.Console({
           level: 'debug',
           handleExceptions: true,
@@ -56,7 +63,7 @@ export class LogService {
 
   public error(message: string | Error, context?: string): void {
     if (message instanceof Error) {
-      this.log(message.stack, context, LogLevel.Error);
+      this.log(message.stack, message.constructor.name, LogLevel.Error);
     } else {
       this.log(message, context, LogLevel.Error);
     }
