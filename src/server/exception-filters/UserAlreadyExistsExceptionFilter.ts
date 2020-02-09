@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/commo
 import { ValidationError } from 'class-validator';
 import { Request } from 'express';
 import { CreateUserDto } from '../../modules/user/dtos/CreateUserDto';
-import { UserAlreadyExistsError } from '../errors/UserAlreadyExistsError';
+import { UserAlreadyExistsException } from '../exceptions/UserAlreadyExistsException';
 import { ErrorResponse } from '../responses/ErrorResponse';
 
 const createValidationError = (property: string, target: CreateUserDto) => {
@@ -15,9 +15,9 @@ const createValidationError = (property: string, target: CreateUserDto) => {
   return error;
 };
 
-@Catch(UserAlreadyExistsError)
+@Catch(UserAlreadyExistsException)
 export class UserAlreadyExistsExceptionFilter implements ExceptionFilter {
-  public catch(exception: UserAlreadyExistsError, host: ArgumentsHost): void {
+  public catch(exception: UserAlreadyExistsException, host: ArgumentsHost): void {
     const request = host.switchToHttp().getRequest<Request>();
     const payload: CreateUserDto = request.body;
 

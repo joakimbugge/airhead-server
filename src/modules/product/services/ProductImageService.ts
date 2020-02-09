@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as sharp from 'sharp';
 import { Sharp } from 'sharp';
 import { v4 as uuid } from 'uuid';
-import { UnsupportedImageTypeError } from '../../../server/errors/UnsupportedImageTypeError';
+import { UnsupportedImageTypeException } from '../../../server/exceptions/UnsupportedImageTypeException';
 import { ConfigService } from '../../config/services/ConfigService';
 import { FormatImageOptions } from '../interfaces/FormatImageOptions';
 
@@ -17,7 +17,7 @@ export class ProductImageService {
     try {
       return sharp(buffer);
     } catch (e) {
-      throw new UnsupportedImageTypeError();
+      throw new UnsupportedImageTypeException();
     }
   }
 
@@ -31,7 +31,7 @@ export class ProductImageService {
         withoutEnlargement: true,
       }).toBuffer();
     } catch (e) {
-      throw new UnsupportedImageTypeError();
+      throw new UnsupportedImageTypeException();
     }
   }
 
