@@ -185,7 +185,6 @@ describe('Update product', () => {
     const otherExistingProduct = await createProduct(otherUser);
 
     const product: UpdateProductDto = {
-      id: otherExistingProduct.id,
       name: 'Pizza',
       amount: 3, // Changed value
       amountThreshold: 2,
