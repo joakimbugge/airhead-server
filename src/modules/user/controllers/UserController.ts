@@ -1,4 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { BAD_REQUEST, CREATED, OK, UNAUTHORIZED } from 'http-status-codes';
+import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
+import { ApiUnauthorizedException } from '../../../../doc/exceptions/ApiUnauthorizedException';
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
 import { HashUtils } from '../../../utils/HashUtils';
@@ -7,17 +11,22 @@ import { CreateUserDto } from '../dtos/CreateUserDto';
 import { UserService } from '../services/UserService';
 
 @Controller('users')
+@ApiTags('users')
 export class UserController {
   constructor(private readonly userService: UserService) {
   }
 
   @Get('/me')
   @Authenticated()
+  @ApiResponse({ status: OK, type: User })
+  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public me(@Authed() user: User): User {
     return user;
   }
 
   @Post('/')
+  @ApiResponse({ status: CREATED, type: User })
+  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
   public create(@Body() createUserDto: CreateUserDto): Promise<User> {
     const { username, password, email } = createUserDto;
 
