@@ -13,7 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import * as fs from 'fs';
 import { BAD_REQUEST, NO_CONTENT, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
@@ -32,6 +32,7 @@ import { ProductService } from '../services/ProductService';
 
 @Controller('products')
 @ApiTags('product images')
+@ApiBearerAuth()
 export class ProductImageController {
   constructor(
     private readonly productService: ProductService,

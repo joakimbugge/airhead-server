@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BAD_REQUEST, CREATED, OK, UNAUTHORIZED } from 'http-status-codes';
 import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
 import { ApiUnauthorizedException } from '../../../../doc/exceptions/ApiUnauthorizedException';
@@ -18,6 +18,7 @@ export class UserController {
 
   @Get('/me')
   @Authenticated()
+  @ApiBearerAuth()
   @ApiResponse({ status: OK, type: User })
   @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public me(@Authed() user: User): User {

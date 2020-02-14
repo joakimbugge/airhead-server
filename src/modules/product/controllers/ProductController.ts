@@ -10,7 +10,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ValidationError } from 'class-validator';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
 import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
@@ -27,6 +27,7 @@ import { ProductService } from '../services/ProductService';
 
 @Controller('products')
 @ApiTags('products')
+@ApiBearerAuth()
 export class ProductController {
   private readonly MINE_TERM_LENGTH = 3;
   private readonly MIN_LIKENESS = 10;
