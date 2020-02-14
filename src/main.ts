@@ -24,6 +24,7 @@ import { getExceptionFilters, getInterceptors, getPipes } from './server/helpers
       new DocumentBuilder()
         .setTitle('Airhead')
         .setVersion('0.0.4')
+        .addBearerAuth()
         .build()));
 
   await app.listen(port);
