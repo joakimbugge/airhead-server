@@ -1,5 +1,6 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as packageJson from '../package.json';
 import { AppModule } from './AppModule';
 import { LogService } from './modules/logging/services/LogService';
 import { getExceptionFilters, getInterceptors, getPipes } from './server/helpers';
@@ -9,6 +10,7 @@ import { getExceptionFilters, getInterceptors, getPipes } from './server/helpers
   const app = await NestFactory.create(AppModule, { bodyParser: true });
   const logService = app.get(LogService);
   const { httpAdapter } = app.get(HttpAdapterHost);
+  const { name, description, version, author } = packageJson;
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(...getPipes());
@@ -19,11 +21,14 @@ import { getExceptionFilters, getInterceptors, getPipes } from './server/helpers
   app.use(logService.getRequestMiddleware());
   app.use(logService.getResponseMiddleware());
 
+
   SwaggerModule.setup('api', app,
     SwaggerModule.createDocument(app,
       new DocumentBuilder()
-        .setTitle('Airhead')
-        .setVersion('0.0.4')
+        .setTitle(name)
+        .setDescription(description)
+        .setVersion(version)
+        .setContact(author.name, author.url, author.email)
         .addBearerAuth()
         .build()));
 
