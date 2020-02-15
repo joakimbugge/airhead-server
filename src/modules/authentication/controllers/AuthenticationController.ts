@@ -3,7 +3,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { BAD_REQUEST, CREATED, NO_CONTENT } from 'http-status-codes';
 import { MoreThanOrEqual } from 'typeorm';
-import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
+import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
 import { DateUtils } from '../../../utils/DateUtils';
 import { HashUtils } from '../../../utils/HashUtils';
 import { UserService } from '../../user/services/UserService';

@@ -13,9 +13,9 @@ import {
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ValidationError } from 'class-validator';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
-import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
-import { ApiNotFoundException } from '../../../../doc/exceptions/ApiNotFoundException';
-import { ApiUnauthorizedException } from '../../../../doc/exceptions/ApiUnauthorizedException';
+import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
+import { ApiNotFoundException } from '../../../docs/exceptions/ApiNotFoundException';
+import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthorizedException';
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
 import { User } from '../../user/domain/User';
