@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BAD_REQUEST, CREATED, OK, UNAUTHORIZED } from 'http-status-codes';
-import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
-import { ApiUnauthorizedException } from '../../../../doc/exceptions/ApiUnauthorizedException';
+import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
+import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthorizedException';
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
 import { HashUtils } from '../../../utils/HashUtils';
