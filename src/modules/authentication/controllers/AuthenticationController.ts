@@ -1,7 +1,9 @@
 import { Body, Controller, Param, Post, Put, Res } from '@nestjs/common';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { CREATED, NO_CONTENT } from 'http-status-codes';
+import { BAD_REQUEST, CREATED, NO_CONTENT } from 'http-status-codes';
 import { MoreThanOrEqual } from 'typeorm';
+import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
 import { DateUtils } from '../../../utils/DateUtils';
 import { HashUtils } from '../../../utils/HashUtils';
 import { UserService } from '../../user/services/UserService';
@@ -13,13 +15,18 @@ import { AuthenticationService } from '../services/AuthenticationService';
 import { ForgotPasswordTokenService } from '../services/ForgotPasswordTokenService';
 
 @Controller()
+@ApiTags('authentication')
 export class AuthenticationController {
-  constructor(private readonly authenticationService: AuthenticationService,
-              private readonly userService: UserService,
-              private readonly tokenService: ForgotPasswordTokenService) {
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly userService: UserService,
+    private readonly tokenService: ForgotPasswordTokenService,
+  ) {
   }
 
   @Post('login')
+  @ApiResponse({ status: CREATED, type: LoginResponseDto })
+  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
   public async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     const { username, password } = loginDto;
 
@@ -29,8 +36,12 @@ export class AuthenticationController {
   }
 
   @Post('forgot-password')
-  public async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto,
-                              @Res() response: Response): Promise<void> {
+  @ApiResponse({ status: CREATED })
+  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  public async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+    @Res() response: Response,
+  ): Promise<void> {
     const { email } = forgotPasswordDto;
     const user = await this.userService.find({ email });
 
@@ -51,9 +62,13 @@ export class AuthenticationController {
   }
 
   @Put('forgot-password/:hash')
-  public async updatePassword(@Param('hash') hash: string,
-                              @Body() updatePassword: UpdatePasswordDto,
-                              @Res() response: Response): Promise<void> {
+  @ApiResponse({ status: NO_CONTENT })
+  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  public async updatePassword(
+    @Param('hash') hash: string,
+    @Body() updatePassword: UpdatePasswordDto,
+    @Res() response: Response,
+  ): Promise<void> {
     const { password } = updatePassword;
 
     const token = await this.tokenService.find({

@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ForgotPasswordToken } from '../../authentication/domain/ForgotPasswordToken';
@@ -7,9 +8,11 @@ import { UserRole } from '../enums/UserRole';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
+  @ApiProperty()
   public id: number;
 
   @Column({ unique: true })
+  @ApiProperty()
   public username: string;
 
   @Column()
@@ -17,6 +20,7 @@ export class User {
   public password: string;
 
   @Column({ unique: true })
+  @ApiProperty()
   public email: string;
 
   @OneToMany(() => Product, product => product.user)
