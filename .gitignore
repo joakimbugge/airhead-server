@@ -1,5 +1,4 @@
 # Custom
-/docs/swagger.json
 /test/coverage
 /config
 /logs/*.log

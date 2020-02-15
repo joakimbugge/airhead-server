@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../../user/domain/User';
@@ -5,16 +6,20 @@ import { User } from '../../user/domain/User';
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
+  @ApiProperty()
   public id: number;
 
   @Column()
   @Index({ fulltext: true })
+  @ApiProperty()
   public name: string;
 
   @Column()
+  @ApiProperty()
   public amount: number;
 
   @Column()
+  @ApiProperty()
   public amountThreshold: number;
 
   @ManyToOne(() => User, user => user.products)
@@ -22,6 +27,7 @@ export class Product {
   public user: User;
 
   @Column({ nullable: true })
+  @ApiProperty()
   public image: string;
 
   @CreateDateColumn()

@@ -13,19 +13,26 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import * as fs from 'fs';
-import { NO_CONTENT } from 'http-status-codes';
+import { BAD_REQUEST, NO_CONTENT, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
 import * as path from 'path';
+import { ApiBadRequestException } from '../../../../doc/exceptions/ApiBadRequestException';
+import { ApiNotFoundException } from '../../../../doc/exceptions/ApiNotFoundException';
+import { ApiUnauthorizedException } from '../../../../doc/exceptions/ApiUnauthorizedException';
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
 import { UnsupportedImageTypeException } from '../../../server/exceptions/UnsupportedImageTypeException';
 import { ConfigService } from '../../config/services/ConfigService';
 import { User } from '../../user/domain/User';
+import { UploadImageDto } from '../dtos/UploadImageDto';
 import { ProductImageService } from '../services/ProductImageService';
 import { ProductService } from '../services/ProductService';
 
 @Controller('products')
+@ApiTags('product images')
+@ApiBearerAuth()
 export class ProductImageController {
   constructor(
     private readonly productService: ProductService,
@@ -36,6 +43,9 @@ export class ProductImageController {
 
   @Get('/:id/image')
   @Authenticated()
+  @ApiResponse({ status: OK })
+  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public async getImage(@Param('id') id: number, @Authed() user: User, @Res() response: Response) {
     const product = await this.productService.get({ id, user });
     const filePath = `${this.configService.env.IMAGES_PATH}/${product.image}`;
@@ -51,7 +61,17 @@ export class ProductImageController {
   @HttpCode(NO_CONTENT)
   @UseInterceptors(FileInterceptor('file'))
   @Authenticated()
-  public async uploadImage(@Param('id') id: number, @UploadedFile() file, @Authed() user: User): Promise<void> {
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UploadImageDto })
+  @ApiResponse({ status: NO_CONTENT })
+  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  public async uploadImage(
+    @Param('id') id: number,
+    @UploadedFile() file: UploadImageDto,
+    @Authed() user: User,
+  ): Promise<void> {
     if (file == null) {
       throw new BadRequestException('No image provided');
     }
@@ -75,6 +95,9 @@ export class ProductImageController {
   @Delete('/:id/image')
   @HttpCode(NO_CONTENT)
   @Authenticated()
+  @ApiResponse({ status: NO_CONTENT })
+  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public async deleteImage(@Param('id') id: number, @Authed() user: User): Promise<void> {
     const product = await this.productService.get({ id }, { relations: ['user'] });
 

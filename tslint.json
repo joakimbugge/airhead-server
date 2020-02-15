@@ -7,7 +7,6 @@
   "rules": {
     "quotemark": [true, "single"],
     "member-access": [true],
-    "ordered-imports": [true],
     "max-line-length": [true, 120],
     "member-ordering": [false],
     "interface-name": [false],
