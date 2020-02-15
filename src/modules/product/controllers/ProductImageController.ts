@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BAD_REQUEST, NO_CONTENT, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
+import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
 import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
 import { ApiNotFoundException } from '../../../docs/exceptions/ApiNotFoundException';
 import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthorizedException';
@@ -41,7 +41,7 @@ export class ProductImageController {
 
   @Get('/:id/images')
   @Authenticated()
-  @ApiResponse({ status: OK })
+  @ApiResponse({ status: OK, type: [ProductImage] })
   @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
   @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public async getImage(@Param('id') id: number, @Authed() user: User): Promise<ProductImage[]> {
@@ -54,6 +54,7 @@ export class ProductImageController {
   @Authenticated()
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadImageDto })
+  @ApiResponse({ status: CREATED, type: ProductImage })
   @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
   @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
   @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
@@ -93,7 +94,7 @@ export class ProductImageController {
 
   @Delete('/:id/images/:imageId')
   @Authenticated()
-  @ApiResponse({ status: NO_CONTENT })
+  @ApiResponse({ status: OK, type: ProductImage })
   @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
   @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
   public async deleteImage(
