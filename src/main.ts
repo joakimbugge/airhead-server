@@ -12,7 +12,6 @@ import { getExceptionFilters, getInterceptors, getPipes } from './server/helpers
   const { httpAdapter } = app.get(HttpAdapterHost);
   const { name, description, version, author } = packageJson;
 
-  app.setGlobalPrefix('api');
   app.useGlobalPipes(...getPipes());
   app.useGlobalFilters(...getExceptionFilters(httpAdapter, logService));
   app.useGlobalInterceptors(...getInterceptors());
