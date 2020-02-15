@@ -1,8 +1,12 @@
 {
   "name": "airhead-server",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
-  "author": "",
+  "author": {
+    "name": "Joakim Bugge",
+    "email": "joakim.bugge@gmail.com",
+    "url": "https://github.com/joakimbugge"
+  },
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
