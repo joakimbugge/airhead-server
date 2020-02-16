@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, HttpException, HttpServer } from '@nestjs/common';
+import { ArgumentsHost, Catch, HttpServer } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { LogService } from '../../modules/logging/services/LogService';
 
@@ -9,10 +9,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
   }
 
   public catch(exception: any, host: ArgumentsHost): void {
-    if (!(exception instanceof HttpException)) {
-      this.logService.error(exception);
-    }
-
+    this.logService.error(exception);
     super.catch(exception, host);
   }
 }

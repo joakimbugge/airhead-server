@@ -38,7 +38,7 @@ describe('Login', () => {
 
   test('Successful login', async () => {
     return request(app.getHttpServer())
-      .post(`/api/login`)
+      .post(`/login`)
       .send({ username: 'john', password: '123' })
       .expect(CREATED)
       .then(async res => {
@@ -50,21 +50,21 @@ describe('Login', () => {
 
   test('Fail on wrong password', async () => {
     return request(app.getHttpServer())
-      .post(`/api/login`)
+      .post(`/login`)
       .send({ username: 'john', password: '789' })
       .expect(UNAUTHORIZED);
   });
 
   test('Fail on wrong username', async () => {
     return request(app.getHttpServer())
-      .post(`/api/login`)
+      .post(`/login`)
       .send({ username: 'jerry', password: '123' })
       .expect(UNAUTHORIZED);
   });
 
   test('Fail on invalid payload', () => {
     return request(app.getHttpServer())
-      .post(`/api/login`)
+      .post(`/login`)
       .send({ username: 'jerry' })
       .expect(BAD_REQUEST);
   });
@@ -73,21 +73,21 @@ describe('Login', () => {
 describe('Forgot password', () => {
   test('Successful on existing user', () => {
     return request(app.getHttpServer())
-      .post(`/api/forgot-password`)
+      .post(`/forgot-password`)
       .send({ email: 'john@example.com' })
       .expect(CREATED);
   });
 
   test('Successful on unknown user', () => {
     return request(app.getHttpServer())
-      .post(`/api/forgot-password`)
+      .post(`/forgot-password`)
       .send({ email: 'jerry@example.org' })
       .expect(CREATED);
   });
 
   test('Fail on invalid payload', () => {
     return request(app.getHttpServer())
-      .post(`/api/forgot-password`)
+      .post(`/forgot-password`)
       .send({})
       .expect(BAD_REQUEST);
   });
@@ -105,12 +105,12 @@ describe('Forgot password: Change password', () => {
   test('Successful on valid payload', () => {
     const verifyLogin = (password: string, statusCode: number) =>
       request(app.getHttpServer())
-        .post('/api/login')
+        .post('/login')
         .send({ username: user.username, password })
         .expect(statusCode);
 
     return request(app.getHttpServer())
-      .put(`/api/forgot-password/${token.hash}`)
+      .put(`/forgot-password/${token.hash}`)
       .send({ password: '1234', repeatPassword: '1234' })
       .expect(NO_CONTENT)
       .then(() => verifyLogin('1234', CREATED))
@@ -119,14 +119,14 @@ describe('Forgot password: Change password', () => {
 
   test('Successful on invalid token', () => {
     return request(app.getHttpServer())
-      .put('/api/forgot-password/1234')
+      .put('/forgot-password/1234')
       .send({ password: '123', repeatPassword: '123' })
       .expect(NO_CONTENT);
   });
 
   test('Fail on invalid payload', () => {
     return request(app.getHttpServer())
-      .put(`/api/forgot-password/${token.hash}`)
+      .put(`/forgot-password/${token.hash}`)
       .send({ password: '123', repeatPassword: '1234' })
       .expect(BAD_REQUEST);
   });

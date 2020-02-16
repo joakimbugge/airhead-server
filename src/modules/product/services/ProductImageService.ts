@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as sharp from 'sharp';
 import { Sharp } from 'sharp';
+import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { UnsupportedImageTypeException } from '../../../server/exceptions/UnsupportedImageTypeException';
-import { ConfigService } from '../../config/services/ConfigService';
+import { Service } from '../../../services/Service';
+import { ProductImage } from '../domain/ProductImage';
 import { FormatImageOptions } from '../interfaces/FormatImageOptions';
 
 @Injectable()
-export class ProductImageService {
-  constructor(private readonly configService: ConfigService) {
+export class ProductImageService extends Service<ProductImage> {
+  constructor(
+    @InjectRepository(ProductImage) private readonly productImageRepository: Repository<ProductImage>,
+  ) {
+    super(productImageRepository);
   }
 
   private static toSharp(buffer: Buffer): Sharp {
@@ -42,18 +46,10 @@ export class ProductImageService {
     return uuid() + extension;
   }
 
-  public async save(buffer: Buffer, optPath?: string): Promise<string> {
-    const fileName = await this.createFileName(buffer);
-    const filePath = optPath || this.configService.env.IMAGES_PATH;
-
+  public async getContentType(buffer: Buffer): Promise<string> {
     const image = ProductImageService.toSharp(buffer);
-    await image.toFile(path.resolve(filePath, fileName));
+    const prefix = 'image';
 
-    return fileName;
-  }
-
-  public delete(fileName: string, optPath?: string): void {
-    const filePath = optPath || this.configService.env.IMAGES_PATH;
-    fs.unlinkSync(path.resolve(filePath, fileName));
+    return (await image.metadata()).hasAlpha ? `${prefix}/png` : `${prefix}/jpg`;
   }
 }

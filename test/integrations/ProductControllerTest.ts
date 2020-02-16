@@ -18,20 +18,11 @@ beforeEach(async () => {
 afterEach(async () => TestUtils.shutdown(app));
 
 function getProduct(conditions: FindConditions<Product>): Promise<Product> {
-  return getRepository<Product>('product').findOne(conditions);
+  return getRepository<Product>(Product).findOne(conditions);
 }
 
-async function createProduct(user: User, name: string = 'Pizza'): Promise<Product> {
-  const product = new Product();
-
-  product.name = name;
-  product.amount = 1;
-  product.amountThreshold = 2;
-  product.user = user;
-
-  await getRepository('product').save(product);
-
-  return getProduct({ name: product.name });
+async function persistProduct(user: User, name: string = 'Pizza'): Promise<Product> {
+  return await TestUtils.persistProduct(TestUtils.createProduct(name, user));
 }
 
 describe('Get products', () => {
@@ -40,27 +31,25 @@ describe('Get products', () => {
     const token = await TestUtils.loginUser(user, app);
 
     return request(app.getHttpServer())
-      .get(`/api/products`)
+      .get(`/products`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async res => {
-        expect(res.body).toHaveLength(0);
+      .then(async ({ body }) => {
+        expect(body).toHaveLength(0);
       });
   });
 
-  test('Populated List when user got products', async () => {
+  test('Populated list when user got products', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const firstProduct = await createProduct(user);
-    const secondProduct = await createProduct(user, 'Apples');
+    const firstProduct = await persistProduct(user);
+    const secondProduct = await persistProduct(user, 'Apples');
 
     return request(app.getHttpServer())
-      .get(`/api/products`)
+      .get(`/products`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async res => {
-        const { body } = res;
-
+      .then(async ({ body }) => {
         expect(body).toHaveLength(2);
         expect(body).toContainEqual(classToPlain(firstProduct));
         expect(body).toContainEqual(classToPlain(secondProduct));
@@ -74,7 +63,7 @@ describe('Get product', () => {
     const token = await TestUtils.loginUser(user, app);
 
     return request(app.getHttpServer())
-      .get(`/api/products/999`)
+      .get(`/products/999`)
       .auth(token, { type: 'bearer' })
       .expect(NOT_FOUND);
   });
@@ -82,10 +71,10 @@ describe('Get product', () => {
   test('Valid payload', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
+    const product = await persistProduct(user);
 
     return request(app.getHttpServer())
-      .get(`/api/products/${product.id}`)
+      .get(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
       .then(async () => {
@@ -105,7 +94,7 @@ describe('Create product', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/products')
+      .post('/products')
       .auth(token, { type: 'bearer' })
       .send(product)
       .expect(BAD_REQUEST)
@@ -124,7 +113,7 @@ describe('Create product', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/products')
+      .post('/products')
       .auth(token, { type: 'bearer' })
       .send(product)
       .expect(BAD_REQUEST)
@@ -143,13 +132,11 @@ describe('Create product', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/products')
+      .post('/products')
       .auth(token, { type: 'bearer' })
       .send(product)
       .expect(CREATED)
-      .then(res => {
-        const { body } = res;
-
+      .then(({ body }) => {
         expect(body).toMatchObject(product);
         expect(body).toHaveProperty('id');
       });
@@ -160,7 +147,7 @@ describe('Update product', () => {
   test('Invalid payload: Invalid value', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const existingProduct = await createProduct(user);
+    const existingProduct = await persistProduct(user);
 
     const product = {
       ...existingProduct,
@@ -168,13 +155,13 @@ describe('Update product', () => {
     };
 
     return request(app.getHttpServer())
-      .put(`/api/products/${existingProduct.id}`)
+      .put(`/products/${existingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(product)
       .expect(BAD_REQUEST)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(savedProduct).toMatchObject(existingProduct);
+        expect(classToPlain(savedProduct)).toEqual(classToPlain(existingProduct));
       });
   });
 
@@ -182,7 +169,7 @@ describe('Update product', () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
     const otherUser = await TestUtils.persistUser('jim');
-    const otherExistingProduct = await createProduct(otherUser);
+    const otherExistingProduct = await persistProduct(otherUser);
 
     const product: UpdateProductDto = {
       name: 'Pizza',
@@ -191,31 +178,31 @@ describe('Update product', () => {
     };
 
     return request(app.getHttpServer())
-      .put(`/api/products/${otherExistingProduct.id}`)
+      .put(`/products/${otherExistingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(product)
       .expect(NOT_FOUND)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(savedProduct).toMatchObject(otherExistingProduct);
+        expect(classToPlain(savedProduct)).toEqual(classToPlain(otherExistingProduct));
       });
   });
 
   test('Valid payload', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const existingProduct = await createProduct(user);
+    const existingProduct = await persistProduct(user);
 
     existingProduct.amount = 2;
 
     return request(app.getHttpServer())
-      .put(`/api/products/${existingProduct.id}`)
+      .put(`/products/${existingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send(existingProduct)
       .expect(OK)
       .then(async () => {
         const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(savedProduct).toMatchObject(existingProduct);
+        expect(classToPlain(savedProduct)).toEqual(classToPlain(existingProduct));
       });
   });
 });
@@ -226,7 +213,7 @@ describe('Delete product', () => {
     const token = await TestUtils.loginUser(user, app);
 
     return request(app.getHttpServer())
-      .delete(`/api/products/999`)
+      .delete(`/products/999`)
       .auth(token, { type: 'bearer' })
       .expect(NOT_FOUND);
   });
@@ -235,10 +222,10 @@ describe('Delete product', () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
     const otherUser = await TestUtils.persistUser('jim');
-    const otherExistingProduct = await createProduct(otherUser);
+    const otherExistingProduct = await persistProduct(otherUser);
 
     return request(app.getHttpServer())
-      .delete(`/api/products/${otherExistingProduct.id}`)
+      .delete(`/products/${otherExistingProduct.id}`)
       .auth(token, { type: 'bearer' })
       .expect(NOT_FOUND)
       .then(async () => {
@@ -250,10 +237,10 @@ describe('Delete product', () => {
   test('Valid payload', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
+    const product = await persistProduct(user);
 
     return request(app.getHttpServer())
-      .delete(`/api/products/${product.id}`)
+      .delete(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
       .then(async () => {

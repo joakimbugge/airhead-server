@@ -3,6 +3,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ForgotPasswordToken } from '../authentication/domain/ForgotPasswordToken';
 import { ConfigService } from '../config/services/ConfigService';
 import { Product } from '../product/domain/Product';
+import { ProductImage } from '../product/domain/ProductImage';
 import { User } from '../user/domain/User';
 
 type DatabaseOptions = Partial<TypeOrmModuleOptions>;
@@ -16,7 +17,7 @@ function getOptions(): DatabaseOptions {
     synchronize: config.env.DB_SYNCHRONIZE,
     dropSchema: config.env.DB_DROP_SCHEMA,
     logging: config.env.DB_LOGGING,
-    entities: [User, Product, ForgotPasswordToken],
+    entities: [User, Product, ProductImage, ForgotPasswordToken],
     migrationsTableName: 'migration',
     migrations: [`${__dirname}/migrations/**.ts`],
     cli: {
