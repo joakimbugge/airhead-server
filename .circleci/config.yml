@@ -1,9 +1,9 @@
 version: 2
 jobs:
-  build:
+  test:
     docker:
       # https://circleci.com/docs/2.0/circleci-images/
-      - image: circleci/node:10.14-stretch
+      - image: circleci/node:13.8.0-stretch
     working_directory: ~/repo
     steps:
       - checkout
@@ -20,19 +20,19 @@ jobs:
       - run: npm test
   deploy:
     docker:
-      - image: circleci/node:10.14-stretch
+      - image: circleci/node:13.8.0-stretch
     steps:
       - checkout
       - run: sudo npm i -g pm2
       - run: pm2 deploy production
 workflows:
   version: 2
-  build-deploy:
+  test-deploy:
     jobs:
-      - build
+      - test
       - deploy:
           requires:
-            - build
+            - test
           filters:
             branches:
               only: master

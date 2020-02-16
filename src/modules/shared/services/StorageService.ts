@@ -21,21 +21,26 @@ export class StorageService {
     });
   }
 
-  public getCdnUrl(): string {
+  private static composeEnvironmentalPath(path: string): string {
+    return `${process.env.NODE_ENV}/${path}`;
+  }
+
+  public composeCdnUrl(path: string): string {
     const {
       DO_SPACES_NAME,
       DO_SPACES_REGION,
       DO_SPACES_URL,
     } = this.config.env;
+    const environmentalPath = StorageService.composeEnvironmentalPath(path);
 
-    return `https://${DO_SPACES_NAME}.${DO_SPACES_REGION}.cdn.${DO_SPACES_URL}`;
+    return `https://${DO_SPACES_NAME}.${DO_SPACES_REGION}.cdn.${DO_SPACES_URL}/${environmentalPath}`;
   }
 
   public upload(path: string, file: Buffer, contentType: string): Promise<void | AWSError> {
     return new Promise(((resolve, reject) => {
       this.s3.putObject({
         Bucket: this.config.env.DO_SPACES_NAME,
-        Key: path,
+        Key: StorageService.composeEnvironmentalPath(path),
         Body: file,
         ACL: 'public-read',
         ContentType: contentType,
@@ -53,7 +58,7 @@ export class StorageService {
     return new Promise((resolve, reject) => {
       this.s3.deleteObject({
         Bucket: this.config.env.DO_SPACES_NAME,
-        Key: path,
+        Key: StorageService.composeEnvironmentalPath(path),
       }, error => {
         if (error) {
           return reject(error);

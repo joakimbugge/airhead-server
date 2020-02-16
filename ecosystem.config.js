@@ -22,7 +22,7 @@ module.exports = {
       repo: 'git@github.com:joakimbugge/airhead-server.git',
       path: '/root/apps',
       ssh_options: 'StrictHostKeyChecking=no',
-      'post-deploy': 'npm ci && npm run build && pm2 reload ecosystem.config.js --env production',
+      'post-deploy': 'npm ci && npm run build:memory && pm2 reload ecosystem.config.js --env production',
     },
   },
 };

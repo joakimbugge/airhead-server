@@ -77,7 +77,7 @@ export class ProductImageController {
 
       const productImage = new ProductImage();
       productImage.name = fileName;
-      productImage.path = `${this.storageService.getCdnUrl()}/${this.STORAGE_FOLDER}`;
+      productImage.path = `${this.storageService.composeCdnUrl(this.STORAGE_FOLDER)}`;
       productImage.product = product;
 
       await this.storageService.upload(path, image, contentType);
