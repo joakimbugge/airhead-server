@@ -25,7 +25,7 @@ export class Config {
   public ASSETS_PATH = 'assets';
   public IMAGES_PATH = `${this.ASSETS_PATH}/images`;
   public LOGS_PATH = 'logs';
-  public FORGOT_PASSWORD_TOKEN_LIFE_TIME: number = 3;
+  public RESET_PASSWORD_TOKEN_HOURS_LIFETIME: number = 72;
   @IsDefined()
   public DO_SPACES_REGION: string;
   @IsDefined()

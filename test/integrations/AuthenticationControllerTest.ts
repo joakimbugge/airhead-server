@@ -1,28 +1,23 @@
 import { INestApplication } from '@nestjs/common';
-import { addDays } from 'date-fns';
 import { BAD_REQUEST, CREATED, NO_CONTENT, UNAUTHORIZED } from 'http-status-codes';
 import * as request from 'supertest';
 import { getRepository } from 'typeorm';
-import { ForgotPasswordToken } from '../../src/modules/authentication/domain/ForgotPasswordToken';
+import { ResetPasswordToken } from '../../src/modules/authentication/domain/ResetPasswordToken';
 import { LoginResponseDto } from '../../src/modules/authentication/dtos/LoginResponseDto';
 import { User } from '../../src/modules/user/domain/User';
+import { DateUtils } from '../../src/utils/DateUtils';
 import { TestUtils } from '../TestUtils';
 
 const JWT_REGEX = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/;
 let app: INestApplication;
 
-function createForgotPasswordToken(user: User): ForgotPasswordToken {
-  const token = new ForgotPasswordToken();
-
+function persistResetPasswordToken(user: User): Promise<ResetPasswordToken> {
+  const token = new ResetPasswordToken();
   token.user = user;
-  token.expiresAt = addDays(new Date(), 3);
+  token.expiresAt = DateUtils.addHours(3);
   token.hash = '12345689';
 
-  return token;
-}
-
-function persistForgotPasswordToken(user: User): Promise<ForgotPasswordToken> {
-  return getRepository(ForgotPasswordToken).save(createForgotPasswordToken(user));
+  return getRepository(ResetPasswordToken).save(token);
 }
 
 beforeEach(async () => {
@@ -70,36 +65,36 @@ describe('Login', () => {
   });
 });
 
-describe('Forgot password', () => {
+describe('Reset password', () => {
   test('Successful on existing user', () => {
     return request(app.getHttpServer())
-      .post(`/forgot-password`)
+      .post(`/reset-password`)
       .send({ email: 'john@example.com' })
       .expect(CREATED);
   });
 
   test('Successful on unknown user', () => {
     return request(app.getHttpServer())
-      .post(`/forgot-password`)
+      .post(`/reset-password`)
       .send({ email: 'jerry@example.org' })
       .expect(CREATED);
   });
 
   test('Fail on invalid payload', () => {
     return request(app.getHttpServer())
-      .post(`/forgot-password`)
+      .post(`/reset-password`)
       .send({})
       .expect(BAD_REQUEST);
   });
 });
 
-describe('Forgot password: Change password', () => {
+describe('Reset password: Change password', () => {
   let user;
   let token;
 
   beforeEach(async () => {
     user = await TestUtils.persistUser();
-    token = await persistForgotPasswordToken(user);
+    token = await persistResetPasswordToken(user);
   });
 
   test('Successful on valid payload', () => {
@@ -110,7 +105,7 @@ describe('Forgot password: Change password', () => {
         .expect(statusCode);
 
     return request(app.getHttpServer())
-      .put(`/forgot-password/${token.hash}`)
+      .put(`/reset-password/${token.hash}`)
       .send({ password: '1234', repeatPassword: '1234' })
       .expect(NO_CONTENT)
       .then(() => verifyLogin('1234', CREATED))
@@ -119,14 +114,14 @@ describe('Forgot password: Change password', () => {
 
   test('Successful on invalid token', () => {
     return request(app.getHttpServer())
-      .put('/forgot-password/1234')
+      .put('/reset-password/1234')
       .send({ password: '123', repeatPassword: '123' })
       .expect(NO_CONTENT);
   });
 
   test('Fail on invalid payload', () => {
     return request(app.getHttpServer())
-      .put(`/forgot-password/${token.hash}`)
+      .put(`/reset-password/${token.hash}`)
       .send({ password: '123', repeatPassword: '1234' })
       .expect(BAD_REQUEST);
   });

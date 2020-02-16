@@ -3,16 +3,20 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { BAD_REQUEST, CREATED, NO_CONTENT } from 'http-status-codes';
 import { MoreThanOrEqual } from 'typeorm';
+import * as uuid from 'uuid/v4';
 import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
 import { DateUtils } from '../../../utils/DateUtils';
 import { HashUtils } from '../../../utils/HashUtils';
+import { ConfigService } from '../../config/services/ConfigService';
+import { LogService } from '../../logging/services/LogService';
 import { UserService } from '../../user/services/UserService';
-import { ForgotPasswordDto } from '../dtos/ForgotPasswordDto';
+import { ResetPasswordToken } from '../domain/ResetPasswordToken';
 import { LoginDto } from '../dtos/LoginDto';
 import { LoginResponseDto } from '../dtos/LoginResponseDto';
+import { ResetPasswordDto } from '../dtos/ResetPasswordDto';
 import { UpdatePasswordDto } from '../dtos/UpdatePasswordDto';
 import { AuthenticationService } from '../services/AuthenticationService';
-import { ForgotPasswordTokenService } from '../services/ForgotPasswordTokenService';
+import { ResetPasswordService } from '../services/ResetPasswordService';
 
 @Controller()
 @ApiTags('authentication')
@@ -20,7 +24,9 @@ export class AuthenticationController {
   constructor(
     private readonly authenticationService: AuthenticationService,
     private readonly userService: UserService,
-    private readonly tokenService: ForgotPasswordTokenService,
+    private readonly resetPasswordService: ResetPasswordService,
+    private readonly config: ConfigService,
+    private readonly logService: LogService,
   ) {
   }
 
@@ -35,33 +41,35 @@ export class AuthenticationController {
     return new LoginResponseDto(token);
   }
 
-  @Post('forgot-password')
+  @Post('reset-password')
   @ApiResponse({ status: CREATED })
   @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
   public async forgotPassword(
-    @Body() forgotPasswordDto: ForgotPasswordDto,
+    @Body() resetPasswordDto: ResetPasswordDto,
     @Res() response: Response,
   ): Promise<void> {
-    const { email } = forgotPasswordDto;
+    const { email } = resetPasswordDto;
+    const { RESET_PASSWORD_TOKEN_HOURS_LIFETIME } = this.config.env;
     const user = await this.userService.find({ email });
 
     if (!user) {
       // Successful response to prevent user look-up
+      this.logService.error(`Failed to create token for unknown email ${email}`, this.constructor.name);
       response.status(CREATED).send();
       return;
     }
 
-    // Clean up unused tokens
-    const tokens = await this.tokenService.findMany({ user });
-    await this.tokenService.deleteMany(tokens, false);
+    const token = new ResetPasswordToken();
+    token.hash = uuid();
+    token.user = user;
+    token.expiresAt = DateUtils.addHours(RESET_PASSWORD_TOKEN_HOURS_LIFETIME);
 
-    const token = this.tokenService.createToken(user);
-    await this.tokenService.save(token);
+    await this.resetPasswordService.save(token);
 
     response.status(CREATED).send();
   }
 
-  @Put('forgot-password/:hash')
+  @Put('reset-password/:hash')
   @ApiResponse({ status: NO_CONTENT })
   @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
   public async updatePassword(
@@ -71,7 +79,7 @@ export class AuthenticationController {
   ): Promise<void> {
     const { password } = updatePassword;
 
-    const token = await this.tokenService.find({
+    const token = await this.resetPasswordService.find({
       hash,
       expiresAt: MoreThanOrEqual(DateUtils.format(new Date())),
     }, {
@@ -79,7 +87,8 @@ export class AuthenticationController {
     });
 
     if (!token) {
-      // Successful response to prevent user look-up
+      // Successful response to prevent token look-up
+      this.logService.error(`No token found for hash ${hash}`, this.constructor.name);
       response.status(NO_CONTENT).send();
       return;
     }
@@ -88,7 +97,7 @@ export class AuthenticationController {
     user.password = HashUtils.createHash(password);
 
     await this.userService.save(user);
-    await this.tokenService.delete(token, false);
+    await this.resetPasswordService.delete(token, false);
 
     response.status(NO_CONTENT).send();
   }

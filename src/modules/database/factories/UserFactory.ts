@@ -8,7 +8,7 @@ define(User, (faker: FakerStatic) => {
 
   user.username = faker.internet.userName();
   user.password = HashUtils.createHash('123');
-  user.email = faker.internet.exampleEmail();
+  user.email = `${user.username}@example.com`;
 
   return user;
 });
