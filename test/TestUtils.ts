@@ -15,7 +15,7 @@ import { HashUtils } from '../src/utils/HashUtils';
 export abstract class TestUtils {
   public static async createModule(): Promise<TestingModule> {
     const storageService = {
-      getCdnUrl: () => '',
+      composeCdnUrl: () => '',
       upload: () => new Promise(resolve => resolve()),
       delete: () => new Promise(resolve => resolve()),
     };
