@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from '../../user/domain/User';
+import { ProductImage } from './ProductImage';
 
 @Entity()
 export class Product {
@@ -26,9 +36,8 @@ export class Product {
   @Exclude({ toPlainOnly: true })
   public user: User;
 
-  @Column({ nullable: true })
-  @ApiProperty()
-  public image: string;
+  @OneToMany(() => ProductImage, image => image.product, { eager: true })
+  public images: ProductImage[];
 
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })

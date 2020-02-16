@@ -1,15 +1,11 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
-import * as fs from 'fs';
-import { BAD_REQUEST, NO_CONTENT, NOT_FOUND, OK } from 'http-status-codes';
+import { INestApplication } from '@nestjs/common';
+import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
 import * as path from 'path';
 import * as request from 'supertest';
-import { getRepository } from 'typeorm';
 import { Product } from '../../src/modules/product/domain/Product';
+import { ProductImage } from '../../src/modules/product/domain/ProductImage';
 import { User } from '../../src/modules/user/domain/User';
 import { TestUtils } from '../TestUtils';
-
-const IMAGES_PATH = 'assets/images';
-const TEST_IMAGES_PATH = 'test/assets/images';
 
 let app: INestApplication;
 
@@ -19,32 +15,26 @@ beforeEach(async () => {
 
 afterEach(async () => TestUtils.shutdown(app));
 
-function getImagePath(fileName: string): string {
-  return path.resolve(IMAGES_PATH, fileName);
-}
-
 function getTestImagePath(fileName: string): string {
-  return path.resolve(TEST_IMAGES_PATH, fileName);
+  return path.resolve('test/assets/images', fileName);
 }
 
-async function createProduct(user: User, name: string = 'Pizza'): Promise<Product> {
-  const product = TestUtils.createProduct(name, user);
-  return await getRepository('product').save(product);
+function persistProduct(user: User, name: string = 'Pizza'): Promise<Product> {
+  return TestUtils.persistProduct(TestUtils.createProduct(name, user));
 }
 
-async function cleanUpImage(): Promise<void> {
-  const savedProduct = await getRepository<Product>('product').findOne({ name: 'Pizza' });
-  fs.unlinkSync(getImagePath(savedProduct.image));
+function persistProductImage(product: Product): Promise<ProductImage> {
+  return TestUtils.persistProductImage(TestUtils.createProductImage(product));
 }
 
 describe('Upload image', () => {
   test('Invalid payload: No image', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
+    const product = await persistProduct(user);
 
     return request(app.getHttpServer())
-      .put(`/api/products/${product.id}/image`)
+      .post(`/products/${product.id}/images`)
       .auth(token, { type: 'bearer' })
       .expect(BAD_REQUEST);
   });
@@ -52,11 +42,11 @@ describe('Upload image', () => {
   test('Invalid payload: Not an image', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
+    const product = await persistProduct(user);
     const filePath = getTestImagePath('text.txt');
 
     return request(app.getHttpServer())
-      .put(`/api/products/${product.id}/image`)
+      .post(`/products/${product.id}/images`)
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
       .expect(BAD_REQUEST);
@@ -68,7 +58,7 @@ describe('Upload image', () => {
     const filePath = getTestImagePath('text.txt');
 
     return request(app.getHttpServer())
-      .put(`/api/products/999/image`)
+      .post(`/products/999/images`)
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
       .expect(NOT_FOUND);
@@ -78,11 +68,11 @@ describe('Upload image', () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
     const otherUser = await TestUtils.persistUser('jim');
-    const otherProduct = await createProduct(otherUser);
+    const otherProduct = await persistProduct(otherUser);
     const filePath = getTestImagePath('image-jpg.jpg');
 
     return request(app.getHttpServer())
-      .put(`/api/products/${otherProduct.id}/image`)
+      .post(`/api/products/${otherProduct.id}/images/`)
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
       .expect(NOT_FOUND);
@@ -91,17 +81,14 @@ describe('Upload image', () => {
   test('Successful upload', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
+    const product = await persistProduct(user);
     const imagePath = getTestImagePath('image-jpg.jpg');
 
     return request(app.getHttpServer())
-      .put(`/api/products/${product.id}/image`)
+      .post(`/products/${product.id}/images`)
       .auth(token, { type: 'bearer' })
       .attach('file', imagePath)
-      .expect(HttpStatus.NO_CONTENT)
-      .then(async () => {
-        await cleanUpImage();
-      });
+      .expect(CREATED);
   });
 });
 
@@ -110,11 +97,12 @@ describe('Delete image', () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
     const otherUser = await TestUtils.persistUser('jim');
-    const otherProduct = await createProduct(otherUser);
+    const otherProduct = await persistProduct(otherUser);
+    const otherProductImage = await persistProductImage(otherProduct);
     const filePath = getTestImagePath('image-jpg.jpg');
 
     return request(app.getHttpServer())
-      .delete(`/api/products/${otherProduct.id}/image`)
+      .delete(`/products/${otherProduct.id}/images/${otherProductImage.id}`)
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
       .expect(NOT_FOUND);
@@ -125,7 +113,7 @@ describe('Delete image', () => {
     const token = await TestUtils.loginUser(user, app);
 
     return request(app.getHttpServer())
-      .delete(`/api/products/999/image`)
+      .delete(`/products/999/images/999`)
       .auth(token, { type: 'bearer' })
       .expect(NOT_FOUND);
   });
@@ -133,76 +121,12 @@ describe('Delete image', () => {
   test('Successful deletion', async () => {
     const user = await TestUtils.persistUser();
     const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
-    const imagePath = getTestImagePath('image-jpg.jpg');
+    const product = await persistProduct(user);
+    const image = await persistProductImage(product);
 
-    return request(app.getHttpServer())
-      .put(`/api/products/${product.id}/image`)
+    request(app.getHttpServer())
+      .delete(`/products/${product.id}/images/${image.id}`)
       .auth(token, { type: 'bearer' })
-      .attach('file', imagePath)
-      .then(() =>
-        request(app.getHttpServer())
-          .delete(`/api/products/${product.id}/image`)
-          .auth(token, { type: 'bearer' })
-          .expect(NO_CONTENT));
-  });
-});
-
-describe('Get image', () => {
-  test('Fail on non-existing image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
-
-    return request(app.getHttpServer())
-      .get(`/api/products/${product.id}/image`)
-      .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND);
-  });
-
-  test('Fail on another user\'s image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const otherUser = await TestUtils.persistUser('jim');
-    const otherToken = await TestUtils.loginUser(otherUser, app);
-    const otherProduct = await createProduct(otherUser);
-    const imagePath = getTestImagePath('image-jpg.jpg');
-
-    return request(app.getHttpServer())
-      .put(`/api/products/${otherProduct.id}/image`)
-      .auth(otherToken, { type: 'bearer' })
-      .attach('file', imagePath)
-      .then(() => {
-
-        return request(app.getHttpServer())
-          .get(`/api/products/${otherProduct.id}/image`)
-          .auth(token, { type: 'bearer' })
-          .expect(NOT_FOUND)
-          .then(async () => {
-            await cleanUpImage();
-          });
-      });
-  });
-
-  test('Successfully get existing image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await createProduct(user);
-    const imagePath = getTestImagePath('image-jpg.jpg');
-
-    return request(app.getHttpServer())
-      .put(`/api/products/${product.id}/image`)
-      .auth(token, { type: 'bearer' })
-      .attach('file', imagePath)
-      .then(() => {
-
-        return request(app.getHttpServer())
-          .get(`/api/products/${product.id}/image`)
-          .auth(token, { type: 'bearer' })
-          .expect(OK)
-          .then(async () => {
-            await cleanUpImage();
-          });
-      });
+      .expect(OK);
   });
 });

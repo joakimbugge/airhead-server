@@ -7,18 +7,12 @@ import { ProductImageService } from '../../../src/modules/product/services/Produ
 import { TestHelpers } from '../../TestHelpers';
 import { TestUtils } from '../../TestUtils';
 
-const TEST_IMAGES_PATH = 'test/assets/images';
-
 function getTestImagePath(fileName: string): string {
-  return path.resolve(TEST_IMAGES_PATH, fileName);
+  return path.resolve('test/assets/images', fileName);
 }
 
 function getBuffer(fileName: string): Buffer {
   return fs.readFileSync(getTestImagePath(fileName));
-}
-
-function deleteImage(filePath: string): void {
-  return fs.unlinkSync(filePath);
 }
 
 function getMetadata(buffer: Buffer): Promise<Metadata> {
@@ -148,17 +142,5 @@ describe('format()', () => {
 
     expect(portaitMetadata.width).toBeLessThanOrEqual(775);
     expect(portaitMetadata.height).toBeLessThanOrEqual(900);
-  });
-});
-
-describe('saveFile()', () => {
-  test('Saves file to disk at given path', async () => {
-    const buffer = getBuffer('image-png.png');
-    const tmpPath = path.resolve(TEST_IMAGES_PATH, 'tmp');
-    const filePath = await service.save(buffer, tmpPath);
-
-    expect(() => getBuffer(`tmp/${filePath}`)).not.toThrow(Error);
-
-    deleteImage(path.join(tmpPath, filePath));
   });
 });

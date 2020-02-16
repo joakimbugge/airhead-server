@@ -26,7 +26,7 @@ describe('Create new user', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/users')
+      .post('/users')
       .send(user)
       .expect(CREATED)
       .then(async () => {
@@ -43,7 +43,7 @@ describe('Create new user', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/users')
+      .post('/users')
       .send(user)
       .expect(BAD_REQUEST);
   });
@@ -56,11 +56,11 @@ describe('Create new user', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/api/users')
+      .post('/users')
       .send(user)
       .then(async () =>
         request(app.getHttpServer())
-          .post('/api/users')
+          .post('/users')
           .send(user)
           .expect(BAD_REQUEST));
   });
