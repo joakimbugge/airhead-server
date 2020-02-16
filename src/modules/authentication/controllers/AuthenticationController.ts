@@ -81,7 +81,7 @@ export class AuthenticationController {
 
     const token = await this.resetPasswordService.find({
       hash,
-      expiresAt: MoreThanOrEqual(DateUtils.format()),
+      expiresAt: MoreThanOrEqual(DateUtils.format(new Date())),
     }, {
       relations: ['user'],
     });
