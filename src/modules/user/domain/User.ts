@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { ForgotPasswordToken } from '../../authentication/domain/ForgotPasswordToken';
+import { ResetPasswordToken } from '../../authentication/domain/ResetPasswordToken';
 import { Product } from '../../product/domain/Product';
 import { UserRole } from '../enums/UserRole';
 
@@ -26,8 +26,8 @@ export class User {
   @OneToMany(() => Product, product => product.user)
   public products: Product[];
 
-  @OneToMany(() => ForgotPasswordToken, token => token.user)
-  public forgotPasswordTokens: ForgotPasswordToken[];
+  @OneToMany(() => ResetPasswordToken, token => token.user)
+  public resetPasswordTokens: ResetPasswordToken[];
 
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })
