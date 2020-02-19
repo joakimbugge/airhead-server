@@ -1,23 +1,23 @@
-import { FindConditions, FindOneOptions, Repository } from 'typeorm';
+import { FindConditions, FindOneOptions, IsNull, Repository } from 'typeorm';
 
 export abstract class Service<T> {
   protected constructor(private readonly repository: Repository<T>) {
   }
 
   public find(conditions: FindConditions<T>, options?: FindOneOptions<T>): Promise<T | undefined> {
-    return this.repository.findOne(conditions, options);
+    return this.repository.findOne({ deletedAt: IsNull(), ...conditions }, options);
   }
 
   public findMany(conditions: FindConditions<T>): Promise<T[]> {
-    return this.repository.find(conditions);
+    return this.repository.find({ deletedAt: IsNull(), ...conditions });
   }
 
   public findById(id: number): Promise<T> {
-    return this.repository.findOne(id);
+    return this.find({ id } as any);
   }
 
   public get(conditions: FindConditions<T>, options?: FindOneOptions<T>): Promise<T> {
-    return this.repository.findOneOrFail(conditions, options);
+    return this.repository.findOneOrFail({ deletedAt: IsNull(), ...conditions }, options);
   }
 
   public save(entity: T): Promise<T> {
