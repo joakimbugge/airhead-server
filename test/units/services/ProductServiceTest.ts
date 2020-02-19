@@ -76,6 +76,24 @@ describe('findMany()', () => {
 
     expect(products).toHaveLength(0);
   });
+
+  test('Exclude deleted products', async () => {
+    const products = [
+      TestUtils.createProduct('Butter', user),
+      TestUtils.createProduct('Bread', user),
+      TestUtils.createProduct('Apple', user),
+    ];
+
+    await persistProducts(products);
+
+    expect(await service.findMany({ user })).toHaveLength(3);
+
+    const product = await getRepository(Product).findOne({ name: 'Butter' });
+    const deletedProduct = await service.delete(product);
+
+    expect(await service.findMany({ user })).toHaveLength(2);
+    expect(product).toEqual(deletedProduct);
+  });
 });
 
 describe('get()', () => {
@@ -87,9 +105,18 @@ describe('get()', () => {
   });
 
   test('Throws exception if not gotten by properties', async () => {
-    const getUser = () => service.get({ name: 'not-found' });
+    const getProduct = () => service.get({ name: 'not-found' });
 
-    await expect(getUser()).rejects.toThrow(EntityNotFoundError);
+    await expect(getProduct()).rejects.toThrow(EntityNotFoundError);
+  });
+
+  test('Throws exception if product is deleted', async () => {
+    const createdProduct = await TestUtils.persistProduct(TestUtils.createProduct('Apples', user));
+    await service.delete(createdProduct);
+
+    const getProduct = () => service.get({ name: 'Apples', user });
+
+    await expect(getProduct()).rejects.toThrow(EntityNotFoundError);
   });
 });
 
