@@ -27,9 +27,18 @@ jobs:
       - run: pm2 deploy production
 workflows:
   version: 2
+  test:
+    jobs:
+      - test:
+          filters:
+            branches:
+              ignore: master
   test-deploy:
     jobs:
-      - test
+      - test:
+          filters:
+            branches:
+              only: master
       - deploy:
           requires:
             - test
