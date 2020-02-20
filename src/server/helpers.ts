@@ -2,6 +2,7 @@ import { ExceptionFilter, HttpServer, NestInterceptor, PipeTransform, Validation
 import { LogService } from '../modules/logging/services/LogService';
 import { AllExceptionsFilter } from './exception-filters/AllExceptionsFilter';
 import { EntityNotFoundExceptionFilter } from './exception-filters/EntityNotFoundExceptionFilter';
+import { UploadImageExceptionFilter } from './exception-filters/UploadImageExceptionFilter';
 import { UserAlreadyExistsExceptionFilter } from './exception-filters/UserAlreadyExistsExceptionFilter';
 import { ValidationExceptionFilter } from './exception-filters/ValidationExceptionFilter';
 import { TransformInterceptor } from './interceptors/TransformInterceptor';
@@ -12,6 +13,7 @@ export function getExceptionFilters(httpServer: HttpServer, logService: LogServi
     new EntityNotFoundExceptionFilter(),
     new UserAlreadyExistsExceptionFilter(),
     new ValidationExceptionFilter(),
+    new UploadImageExceptionFilter(),
   ];
 }
 

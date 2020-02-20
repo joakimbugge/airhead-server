@@ -1,31 +1,19 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
-import { ValidationError } from 'class-validator';
 import { Request } from 'express';
-import { CreateUserDto } from '../../modules/user/dtos/CreateUserDto';
+import { ValidationUtils } from '../../utils/ValidationUtils';
 import { UserAlreadyExistsException } from '../exceptions/UserAlreadyExistsException';
 import { ErrorResponse } from '../responses/ErrorResponse';
-
-const createValidationError = (property: string, target: CreateUserDto) => {
-  const error = new ValidationError();
-  error.property = property;
-  error.children = [];
-  error.target = target;
-  error.constraints = { isNotUnique: `${property} may already be in use` };
-
-  return error;
-};
 
 @Catch(UserAlreadyExistsException)
 export class UserAlreadyExistsExceptionFilter implements ExceptionFilter {
   public catch(exception: UserAlreadyExistsException, host: ArgumentsHost): void {
-    const request = host.switchToHttp().getRequest<Request>();
-    const payload: CreateUserDto = request.body;
+    const { body } = host.switchToHttp().getRequest<Request>();
 
     new ErrorResponse()
       .statusCode(HttpStatus.BAD_REQUEST)
       .message([
-        createValidationError('username', payload),
-        createValidationError('email', payload),
+        ValidationUtils.createError('username', body, { isNotUnique: `username may already be in use` }),
+        ValidationUtils.createError('email', body, { isNotUnique: `email may already be in use` }),
       ])
       .send(host);
   }
