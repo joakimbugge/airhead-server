@@ -1,12 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
+import { User } from 'src/modules/user/domain/User';
 import * as request from 'supertest';
-import { FindConditions, getRepository } from 'typeorm';
-import { Product } from '../../src/modules/product/domain/Product';
-import { CreateProductDto } from '../../src/modules/product/dtos/CreateProductDto';
-import { UpdateProductDto } from '../../src/modules/product/dtos/UpdateProductDto';
-import { User } from '../../src/modules/user/domain/User';
+import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
 
 let app: INestApplication;
@@ -15,23 +12,21 @@ beforeEach(async () => {
   app = await TestUtils.startApplication();
 });
 
-afterEach(async () => TestUtils.shutdown(app));
-
-function getProduct(conditions: FindConditions<Product>): Promise<Product> {
-  return getRepository<Product>(Product).findOne(conditions);
-}
-
-async function persistProduct(user: User, name: string = 'Pizza'): Promise<Product> {
-  return await TestUtils.persistProduct(TestUtils.createProduct(name, user));
-}
+afterEach(() => TestUtils.stopApplication(app));
 
 describe('Get products', () => {
-  test('Empty list when user got no products', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
+  const URL = '/products';
+  let user: User;
+  let token: string;
 
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
+  });
+
+  test('Return 200 and empty list for user without products', async () => {
     return request(app.getHttpServer())
-      .get(`/products`)
+      .get(URL)
       .auth(token, { type: 'bearer' })
       .expect(OK)
       .then(async ({ body }) => {
@@ -39,14 +34,12 @@ describe('Get products', () => {
       });
   });
 
-  test('Populated list when user got products', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const firstProduct = await persistProduct(user);
-    const secondProduct = await persistProduct(user, 'Apples');
+  test('Return 200 and list of products', async () => {
+    const firstProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
+    const secondProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
 
     return request(app.getHttpServer())
-      .get(`/products`)
+      .get(URL)
       .auth(token, { type: 'bearer' })
       .expect(OK)
       .then(async ({ body }) => {
@@ -58,194 +51,168 @@ describe('Get products', () => {
 });
 
 describe('Get product', () => {
-  test('Invalid payload: Product does not exist', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
+  const URL = '/products';
+  let user: User;
+  let token: string;
 
-    return request(app.getHttpServer())
-      .get(`/products/999`)
-      .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND);
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
   });
 
-  test('Valid payload', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
+  test('Return 404 on unknown product', async () => {
+    return request(app.getHttpServer())
+      .get(`${URL}/999`)
+      .auth(token, { type: 'bearer' })
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+  });
+
+  test('Return 200 and product', async () => {
+    const product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
 
     return request(app.getHttpServer())
       .get(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async () => {
-        const existingProduct = getProduct({ id: product.id });
-        expect(product).toMatchObject(existingProduct);
+      .then(({ body }) => {
+        expect(body).toEqual(classToPlain(product));
       });
   });
 });
 
 describe('Create product', () => {
-  test('Invalid payload: Missing property', async () => {
-    const token = await TestUtils.loginUser(await TestUtils.persistUser(), app);
-    const product = {
-      // No name
-      amount: 1,
-      amountThreshold: 2,
-    };
+  const URL = '/products';
+  let user: User;
+  let token: string;
 
-    return request(app.getHttpServer())
-      .post('/products')
-      .auth(token, { type: 'bearer' })
-      .send(product)
-      .expect(BAD_REQUEST)
-      .then(async () => {
-        const savedProduct = await getProduct({ amount: 1 });
-        expect(savedProduct).toBeUndefined();
-      });
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
   });
 
-  test('Invalid payload: Invalid value', async () => {
-    const token = await TestUtils.loginUser(await TestUtils.persistUser(), app);
-    const product = {
-      name: 'Pizza',
-      amount: 'one', // Invalid value
-      amountThreshold: 2,
-    };
-
+  test('Return 400 on invalid payload (missing property)', async () => {
     return request(app.getHttpServer())
-      .post('/products')
+      .post(URL)
       .auth(token, { type: 'bearer' })
-      .send(product)
+      .send({ amount: 1, amountThreshold: 2 })
       .expect(BAD_REQUEST)
-      .then(async () => {
-        const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(savedProduct).toBeUndefined();
-      });
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 
-  test('Valid payload', async () => {
-    const token = await TestUtils.loginUser(await TestUtils.persistUser(), app);
-    const product: CreateProductDto = {
-      name: 'Pizza',
-      amount: 1,
-      amountThreshold: 2,
-    };
+  test('Return 400 on invalid payload (invalid property value)', async () => {
+    return request(app.getHttpServer())
+      .post(URL)
+      .auth(token, { type: 'bearer' })
+      .send({ name: 'Pizza', amount: 'one', amountThreshold: 2 })
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
+  });
+
+  test('Return 201 and created product on valid payload', async () => {
+    const createdProduct = { name: 'Pizza', amount: 1, amountThreshold: 2 };
 
     return request(app.getHttpServer())
-      .post('/products')
+      .post(URL)
       .auth(token, { type: 'bearer' })
-      .send(product)
+      .send(createdProduct)
       .expect(CREATED)
       .then(({ body }) => {
-        expect(body).toMatchObject(product);
-        expect(body).toHaveProperty('id');
+        expect(body).toEqual({
+          id: expect.any(Number),
+          ...classToPlain(createdProduct),
+        });
       });
   });
 });
 
 describe('Update product', () => {
-  test('Invalid payload: Invalid value', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const existingProduct = await persistProduct(user);
+  const URL = '/products';
+  let user: User;
+  let token: string;
 
-    const product = {
-      ...existingProduct,
-      amount: 'one', // Invalid value
-    };
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
+  });
+
+  test('Return 400 on invalid payload (invalid property value)', async () => {
+    const product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
+    const changedProduct = { ...product, amount: 'one' };
 
     return request(app.getHttpServer())
-      .put(`/products/${existingProduct.id}`)
+      .put(`${URL}/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .send(product)
+      .send(changedProduct)
       .expect(BAD_REQUEST)
-      .then(async () => {
-        const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(classToPlain(savedProduct)).toEqual(classToPlain(existingProduct));
-      });
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 
-  test('Invalid payload: User does not own product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const otherUser = await TestUtils.persistUser('jim');
-    const otherExistingProduct = await persistProduct(otherUser);
-
-    const product: UpdateProductDto = {
-      name: 'Pizza',
-      amount: 3, // Changed value
-      amountThreshold: 2,
-    };
+  test('Return 404 on product owned by another user', async () => {
+    const otherUser = await TestHelpers.persistUser(TestHelpers.createUser());
+    const otherProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(otherUser));
 
     return request(app.getHttpServer())
-      .put(`/products/${otherExistingProduct.id}`)
+      .put(`${URL}/${otherProduct.id}`)
       .auth(token, { type: 'bearer' })
-      .send(product)
+      .send({ name: 'Pizza', amount: 3, amountThreshold: 2 })
       .expect(NOT_FOUND)
-      .then(async () => {
-        const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(classToPlain(savedProduct)).toEqual(classToPlain(otherExistingProduct));
-      });
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
   });
 
-  test('Valid payload', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const existingProduct = await persistProduct(user);
-
-    existingProduct.amount = 2;
+  test('Return 200 on updated product', async () => {
+    const product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
+    const updatedProduct = { ...classToPlain(product), amount: 2 };
 
     return request(app.getHttpServer())
-      .put(`/products/${existingProduct.id}`)
+      .put(`${URL}/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .send(existingProduct)
+      .send(updatedProduct)
       .expect(OK)
-      .then(async () => {
-        const savedProduct = await getProduct({ name: 'Pizza' });
-        expect(classToPlain(savedProduct)).toEqual(classToPlain(existingProduct));
+      .then(({ body }) => {
+        expect(body).toEqual(updatedProduct);
       });
   });
 });
 
 describe('Delete product', () => {
-  test('Invalid payload: Non-exsiting product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
+  const URL = '/products';
+  let user: User;
+  let token: string;
 
-    return request(app.getHttpServer())
-      .delete(`/products/999`)
-      .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND);
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
   });
 
-  test('Invalid payload: User does not own product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const otherUser = await TestUtils.persistUser('jim');
-    const otherExistingProduct = await persistProduct(otherUser);
-
+  test('Return 404 on unknown product', async () => {
     return request(app.getHttpServer())
-      .delete(`/products/${otherExistingProduct.id}`)
+      .delete(`${URL}/999`)
       .auth(token, { type: 'bearer' })
       .expect(NOT_FOUND)
-      .then(async () => {
-        const stillExistingProdduct = await getProduct({ id: otherExistingProduct.id });
-        expect(stillExistingProdduct.deletedAt).toBeNull();
-      });
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
   });
 
-  test('Valid payload', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
+  test('Return 404 on product owned by another user', async () => {
+    const otherUser = await TestHelpers.persistUser(TestHelpers.createUser());
+    const otherProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(otherUser));
+
+    return request(app.getHttpServer())
+      .delete(`${URL}/${otherProduct.id}`)
+      .auth(token, { type: 'bearer' })
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+  });
+
+  test('Return 200 and deleted product', async () => {
+    const product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
 
     return request(app.getHttpServer())
       .delete(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async () => {
-        const deletedProduct = await getProduct({ id: product.id });
-        expect(deletedProduct.deletedAt).not.toBeNull();
+      .then(({ body }) => {
+        expect(body).toEqual(classToPlain(product));
       });
   });
 });

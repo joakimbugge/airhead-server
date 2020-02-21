@@ -1,18 +1,13 @@
 import { TestingModule } from '@nestjs/testing';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as sharp from 'sharp';
 import { Metadata } from 'sharp';
 import { ProductImageService } from '../../../src/modules/product/services/ProductImageService';
 import { TestHelpers } from '../../TestHelpers';
 import { TestUtils } from '../../TestUtils';
 
-function getTestImagePath(fileName: string): string {
-  return path.resolve('test/assets/images', fileName);
-}
-
 function getBuffer(fileName: string): Buffer {
-  return fs.readFileSync(getTestImagePath(fileName));
+  return fs.readFileSync(TestHelpers.getTestImagePath(fileName));
 }
 
 function getMetadata(buffer: Buffer): Promise<Metadata> {
@@ -23,11 +18,11 @@ let app: TestingModule;
 let service: ProductImageService;
 
 beforeEach(async () => {
-  app = await TestUtils.createModule();
+  app = await TestUtils.createApplication();
   service = app.get(ProductImageService);
 });
 
-afterEach(() => TestUtils.shutdown(app));
+afterEach(() => TestUtils.stopApplication(app));
 
 describe('createFileName()', () => {
   test('Creates a filename consisting of only letters and numbers', async () => {
@@ -38,13 +33,13 @@ describe('createFileName()', () => {
 
   test('Creates a unique filename (n = 1000)', async () => {
     const buffer = getBuffer('image-png.png');
-    const fileNames = [];
+    const fileNames: string[] = [];
 
     for (let i = 0; i < 1000; i++) {
       fileNames.push(await service.createFileName(buffer));
     }
 
-    expect(TestHelpers.isArrayUnique(fileNames)).toBeTruthy();
+    expect(TestHelpers.isUniqueArray(fileNames)).toBeTruthy();
   });
 });
 

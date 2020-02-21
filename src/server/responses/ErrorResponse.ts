@@ -1,11 +1,12 @@
 /* tslint:disable:variable-name */
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { ValidationError } from 'class-validator';
 import { getStatusText } from 'http-status-codes';
 
 export class ErrorResponse {
   private _statusCode: HttpStatus = HttpStatus.BAD_REQUEST;
   private _error: string = getStatusText(this._statusCode);
-  private _message: string;
+  private _message: ValidationError[];
 
   public statusCode(statusCode: HttpStatus): this {
     this._statusCode = statusCode;
@@ -18,7 +19,7 @@ export class ErrorResponse {
     return this;
   }
 
-  public message(message: any): this {
+  public message(message: ValidationError[]): this {
     this._message = message;
     return this;
   }

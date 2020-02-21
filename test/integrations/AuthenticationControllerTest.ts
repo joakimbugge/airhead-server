@@ -1,103 +1,97 @@
 import { INestApplication } from '@nestjs/common';
 import { BAD_REQUEST, CREATED, NO_CONTENT, UNAUTHORIZED } from 'http-status-codes';
 import * as request from 'supertest';
-import { getRepository } from 'typeorm';
 import { ResetPasswordToken } from '../../src/modules/authentication/domain/ResetPasswordToken';
-import { LoginResponseDto } from '../../src/modules/authentication/dtos/LoginResponseDto';
 import { User } from '../../src/modules/user/domain/User';
-import { DateUtils } from '../../src/utils/DateUtils';
+import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
 
-const JWT_REGEX = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/;
 let app: INestApplication;
-
-function persistResetPasswordToken(user: User): Promise<ResetPasswordToken> {
-  const token = new ResetPasswordToken();
-  token.user = user;
-  token.expiresAt = DateUtils.addHours(3);
-  token.hash = '12345689';
-
-  return getRepository(ResetPasswordToken).save(token);
-}
 
 beforeEach(async () => {
   app = await TestUtils.startApplication();
 });
 
-afterEach(async () => TestUtils.shutdown(app));
+afterEach(() => TestUtils.stopApplication(app));
 
 describe('Login', () => {
+  const URL = '/login';
+  let user: User;
+
   beforeEach(async () => {
-    await TestUtils.persistUser();
+    user = await TestHelpers.persistUser(TestHelpers.createUser('john', '123'));
   });
 
-  test('Successful login', async () => {
+  test('Return 200 and token on valid username and password', async () => {
     return request(app.getHttpServer())
-      .post(`/login`)
+      .post(URL)
       .send({ username: 'john', password: '123' })
       .expect(CREATED)
-      .then(async res => {
-        const body = res.body as LoginResponseDto;
-        expect(body).toHaveProperty('token');
-        expect(body.token).toMatch(JWT_REGEX);
+      .then(async ({ body: { token } }) => {
+        expect(token).toMatch(TestHelpers.JWT_REGEX);
       });
   });
 
-  test('Fail on wrong password', async () => {
+  test('Return 401 on invalid password', async () => {
     return request(app.getHttpServer())
-      .post(`/login`)
+      .post(URL)
       .send({ username: 'john', password: '789' })
       .expect(UNAUTHORIZED);
   });
 
-  test('Fail on wrong username', async () => {
+  test('Return 401 on invalid username', async () => {
     return request(app.getHttpServer())
-      .post(`/login`)
+      .post(URL)
       .send({ username: 'jerry', password: '123' })
       .expect(UNAUTHORIZED);
   });
 
-  test('Fail on invalid payload', () => {
+  test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
-      .post(`/login`)
+      .post(URL)
       .send({ username: 'jerry' })
-      .expect(BAD_REQUEST);
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 });
 
 describe('Reset password', () => {
-  test('Successful on existing user', () => {
+  const URL = '/reset-password';
+
+  test('Return 201 on known email', () => {
     return request(app.getHttpServer())
-      .post(`/reset-password`)
+      .post(URL)
       .send({ email: 'john@example.com' })
       .expect(CREATED);
   });
 
-  test('Successful on unknown user', () => {
+  test('Return 201 as a disguise for error on unknown email', () => {
     return request(app.getHttpServer())
-      .post(`/reset-password`)
+      .post(URL)
       .send({ email: 'jerry@example.org' })
       .expect(CREATED);
   });
 
-  test('Fail on invalid payload', () => {
+  test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
-      .post(`/reset-password`)
+      .post(URL)
       .send({})
-      .expect(BAD_REQUEST);
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 });
 
 describe('Reset password: Change password', () => {
-  let user;
-  let token;
+  const URL = '/reset-password';
+  let user: User;
+  let token: ResetPasswordToken;
 
   beforeEach(async () => {
-    user = await TestUtils.persistUser();
-    token = await persistResetPasswordToken(user);
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.persistResetPasswordToken(TestHelpers.createResetPasswordToken(user));
   });
 
-  test('Successful on valid payload', () => {
+  test('Return 201 on valid token', () => {
     const verifyLogin = (password: string, statusCode: number) =>
       request(app.getHttpServer())
         .post('/login')
@@ -105,23 +99,23 @@ describe('Reset password: Change password', () => {
         .expect(statusCode);
 
     return request(app.getHttpServer())
-      .put(`/reset-password/${token.hash}`)
+      .put(`${URL}/${token.hash}`)
       .send({ password: '1234', repeatPassword: '1234' })
       .expect(NO_CONTENT)
       .then(() => verifyLogin('1234', CREATED))
       .then(() => verifyLogin('123', UNAUTHORIZED));
   });
 
-  test('Successful on invalid token', () => {
+  test('Return 201 as a disguised error on invalid token', () => {
     return request(app.getHttpServer())
-      .put('/reset-password/1234')
+      .put(`${URL}/1234`)
       .send({ password: '123', repeatPassword: '123' })
       .expect(NO_CONTENT);
   });
 
-  test('Fail on invalid payload', () => {
+  test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
-      .put(`/reset-password/${token.hash}`)
+      .put(`${URL}/${token.hash}`)
       .send({ password: '123', repeatPassword: '1234' })
       .expect(BAD_REQUEST);
   });

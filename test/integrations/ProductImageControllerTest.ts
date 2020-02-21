@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
+import { classToPlain } from 'class-transformer';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
-import * as path from 'path';
 import * as request from 'supertest';
 import { Product } from '../../src/modules/product/domain/Product';
-import { ProductImage } from '../../src/modules/product/domain/ProductImage';
 import { User } from '../../src/modules/user/domain/User';
+import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
 
 let app: INestApplication;
@@ -13,120 +13,125 @@ beforeEach(async () => {
   app = await TestUtils.startApplication();
 });
 
-afterEach(async () => TestUtils.shutdown(app));
-
-function getTestImagePath(fileName: string): string {
-  return path.resolve('test/assets/images', fileName);
-}
-
-function persistProduct(user: User, name: string = 'Pizza'): Promise<Product> {
-  return TestUtils.persistProduct(TestUtils.createProduct(name, user));
-}
-
-function persistProductImage(product: Product): Promise<ProductImage> {
-  return TestUtils.persistProductImage(TestUtils.createProductImage(product));
-}
+afterEach(() => TestUtils.stopApplication(app));
 
 describe('Upload image', () => {
-  test('Invalid payload: No image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
+  const getUrl = (id: number): string => `/products/${id}/images`;
+  let user: User;
+  let token: string;
+  let product: Product;
 
-    return request(app.getHttpServer())
-      .post(`/products/${product.id}/images`)
-      .auth(token, { type: 'bearer' })
-      .expect(BAD_REQUEST);
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
+    product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
   });
 
-  test('Invalid payload: Not an image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
-    const filePath = getTestImagePath('text.txt');
-
+  test('Return 400 on invalid payload (no file uploaded)', () => {
     return request(app.getHttpServer())
-      .post(`/products/${product.id}/images`)
+      .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
-      .attach('file', filePath)
-      .expect(BAD_REQUEST);
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 
-  test('Invalid payload: Unknown product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const filePath = getTestImagePath('text.txt');
+  test('Return 404 on invalid payload (invalid file type)', () => {
+    const filePath = TestHelpers.getTestImagePath('text.txt');
 
     return request(app.getHttpServer())
-      .post(`/products/999/images`)
+      .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
-      .expect(NOT_FOUND);
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 
-  test('Invalid payload: Another user\'s product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const otherUser = await TestUtils.persistUser('jim');
-    const otherProduct = await persistProduct(otherUser);
-    const filePath = getTestImagePath('image-jpg.jpg');
+  test('Return 404 on product owned by another user', async () => {
+    const otherUser = await TestHelpers.persistUser(TestHelpers.createUser());
+    const otherProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(otherUser));
+    const filePath = TestHelpers.getTestImagePath('image-jpg.jpg');
 
     return request(app.getHttpServer())
-      .post(`/api/products/${otherProduct.id}/images/`)
+      .post(getUrl(otherProduct.id))
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
-      .expect(NOT_FOUND);
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
   });
 
-  test('Successful upload', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
-    const imagePath = getTestImagePath('image-jpg.jpg');
+  test('Return 404 on unknown product', () => {
+    const filePath = TestHelpers.getTestImagePath('text.txt');
 
     return request(app.getHttpServer())
-      .post(`/products/${product.id}/images`)
+      .post(getUrl(999))
+      .auth(token, { type: 'bearer' })
+      .attach('file', filePath)
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+  });
+
+  test('Return 201 and product image', async () => {
+    const imagePath = TestHelpers.getTestImagePath('image-jpg.jpg');
+
+    return request(app.getHttpServer())
+      .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
       .attach('file', imagePath)
-      .expect(CREATED);
+      .expect(CREATED)
+      .then(({ body }) => {
+        expect(body).toMatchObject({
+          id: expect.any(Number),
+          name: expect.any(String),
+          path: expect.any(String),
+          fullPath: expect.any(String),
+        });
+      });
   });
 });
 
 describe('Delete image', () => {
-  test('Invalid payload: Another user\'s product', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const otherUser = await TestUtils.persistUser('jim');
-    const otherProduct = await persistProduct(otherUser);
-    const otherProductImage = await persistProductImage(otherProduct);
-    const filePath = getTestImagePath('image-jpg.jpg');
+  const getUrl = (id: number, imageId: number): string => `/products/${id}/images/${imageId}`;
+  let user: User;
+  let token: string;
+  let product: Product;
 
-    return request(app.getHttpServer())
-      .delete(`/products/${otherProduct.id}/images/${otherProductImage.id}`)
-      .auth(token, { type: 'bearer' })
-      .attach('file', filePath)
-      .expect(NOT_FOUND);
+  beforeEach(async () => {
+    user = await TestHelpers.persistUser(TestHelpers.createUser());
+    token = await TestHelpers.loginUser(user, app);
+    product = await TestHelpers.persistProduct(TestHelpers.createProduct(user));
   });
 
-  test('Invalid payload: Non-existing image', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
+  test('Return 404 on product owned by another user', async () => {
+    const otherUser = await TestHelpers.persistUser(TestHelpers.createUser());
+    const otherProduct = await TestHelpers.persistProduct(TestHelpers.createProduct(otherUser));
+    const otherProductImage = await TestHelpers.persistProductImage(TestHelpers.createProductImage(otherProduct));
 
     return request(app.getHttpServer())
-      .delete(`/products/999/images/999`)
+      .delete(getUrl(otherProduct.id, otherProductImage.id))
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND);
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
   });
 
-  test('Successful deletion', async () => {
-    const user = await TestUtils.persistUser();
-    const token = await TestUtils.loginUser(user, app);
-    const product = await persistProduct(user);
-    const image = await persistProductImage(product);
-
-    request(app.getHttpServer())
-      .delete(`/products/${product.id}/images/${image.id}`)
+  test('Return 404 on non-existing image', () => {
+    return request(app.getHttpServer())
+      .delete(getUrl(product.id, 999))
       .auth(token, { type: 'bearer' })
-      .expect(OK);
+      .expect(NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+  });
+
+  test('Return 200 and product image', async () => {
+    const productImage = await TestHelpers.persistProductImage(TestHelpers.createProductImage(product));
+
+    return request(app.getHttpServer())
+      .delete(getUrl(product.id, productImage.id))
+      .auth(token, { type: 'bearer' })
+      .expect(OK)
+      .then(({ body }) => {
+        // @ts-ignore
+        const { id, ...deletedProductImage } = classToPlain(productImage);
+        expect(body).toEqual(deletedProductImage);
+      });
   });
 });
