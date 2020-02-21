@@ -1,8 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { BAD_REQUEST, CREATED } from 'http-status-codes';
 import * as request from 'supertest';
-import { FindConditions, getRepository } from 'typeorm';
-import { User } from '../../src/modules/user/domain/User';
+import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
 
 let app: INestApplication;
@@ -11,14 +10,12 @@ beforeEach(async () => {
   app = await TestUtils.startApplication();
 });
 
-afterEach(() => TestUtils.shutdown(app));
-
-function getUser(conditions: FindConditions<User>): Promise<User> {
-  return getRepository<User>('user').findOne(conditions);
-}
+afterEach(() => TestUtils.stopApplication(app));
 
 describe('Create new user', () => {
-  test('Successfully create a new user', async () => {
+  const URL = '/users';
+
+  test('Return 201 and created user', async () => {
     const user = {
       username: 'jim',
       email: 'jim@example.org',
@@ -26,42 +23,51 @@ describe('Create new user', () => {
     };
 
     return request(app.getHttpServer())
-      .post('/users')
+      .post(URL)
       .send(user)
       .expect(CREATED)
-      .then(async () => {
-        const savedUser = await getUser({ username: 'jim' });
-        expect(savedUser).not.toBeUndefined();
+      .then(({ body }) => {
+        expect(body).toEqual({
+          id: expect.any(Number),
+          username: user.username,
+          email: user.email,
+        });
       });
   });
 
-  test('Receive error if payload is invalid', async () => {
-    const user = {
-      username: 'jim',
-      email: 'jim@example.org',
-      // Missing password
-    };
-
+  test('Return 400 on invalid payload', async () => {
     return request(app.getHttpServer())
-      .post('/users')
-      .send(user)
-      .expect(BAD_REQUEST);
+      .post(URL)
+      .send({ username: 'jim', email: 'jim@example.org' })
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 
-  test('Receive error if user already exists', async () => {
-    const user = {
-      username: 'jim',
-      email: 'jim@example.org',
-      password: '123',
-    };
+  test('Return 400 on existing username', async () => {
+    const user = await TestHelpers.persistUser(TestHelpers.createUser());
 
     return request(app.getHttpServer())
-      .post('/users')
-      .send(user)
-      .then(async () =>
-        request(app.getHttpServer())
-          .post('/users')
-          .send(user)
-          .expect(BAD_REQUEST));
+      .post(URL)
+      .send({
+        username: user.username,
+        password: '123',
+        email: 'random@example.com',
+      })
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
+  });
+
+  test('Return 400 on existing email', async () => {
+    const user = await TestHelpers.persistUser(TestHelpers.createUser());
+
+    return request(app.getHttpServer())
+      .post(URL)
+      .send({
+        username: 'john',
+        password: '123',
+        email: user.email,
+      })
+      .expect(BAD_REQUEST)
+      .then(res => TestHelpers.expectErrorResponse(res));
   });
 });

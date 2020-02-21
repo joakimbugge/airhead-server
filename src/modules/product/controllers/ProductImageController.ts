@@ -1,13 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
@@ -17,6 +8,7 @@ import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthoriz
 import { Authed } from '../../../server/decorators/Authed';
 import { Authenticated } from '../../../server/decorators/Authenticated';
 import { UnsupportedImageTypeException } from '../../../server/exceptions/UnsupportedImageTypeException';
+import { UploadImageException } from '../../../server/exceptions/UploadImageException';
 import { ConfigService } from '../../config/services/ConfigService';
 import { StorageService } from '../../shared/services/StorageService';
 import { User } from '../../user/domain/User';
@@ -64,7 +56,7 @@ export class ProductImageController {
     @Authed() user: User,
   ): Promise<ProductImage> {
     if (file == null) {
-      throw new BadRequestException('No image provided');
+      throw new UploadImageException('No image provided');
     }
 
     const product = await this.productService.get({ id, user });
@@ -85,7 +77,7 @@ export class ProductImageController {
       return await this.productImageService.save(productImage);
     } catch (error) {
       if (error instanceof UnsupportedImageTypeException) {
-        throw new BadRequestException(error.message);
+        throw new UploadImageException(error.message);
       }
 
       throw error;
