@@ -26,7 +26,7 @@
     "seed": "cross-env NODE_ENV=development ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig-seeds.js"
   },
   "dependencies": {
-    "@nestjs/common": "^6.11.8",
+    "@nestjs/common": "^6.11.9",
     "@nestjs/core": "^6.11.8",
     "@nestjs/passport": "^6.2.0",
     "@nestjs/platform-express": "^6.11.8",
