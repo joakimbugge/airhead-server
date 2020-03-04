@@ -29,7 +29,7 @@
     "@nestjs/common": "^6.11.9",
     "@nestjs/core": "^6.11.11",
     "@nestjs/passport": "^6.2.0",
-    "@nestjs/platform-express": "^6.11.9",
+    "@nestjs/platform-express": "^6.11.11",
     "@nestjs/swagger": "^4.3.2",
     "@nestjs/typeorm": "^6.3.3",
     "aws-sdk": "^2.632.0",
