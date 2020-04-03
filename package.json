@@ -57,7 +57,7 @@
     "winston-daily-rotate-file": "^4.4.2"
   },
   "devDependencies": {
-    "@nestjs/cli": "^7.1.0",
+    "@nestjs/cli": "^7.1.2",
     "@nestjs/schematics": "^7.0.0",
     "@nestjs/testing": "^7.0.0",
     "@types/bcrypt": "^3.0.0",
