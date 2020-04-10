@@ -73,7 +73,7 @@
     "@types/uuid": "^7.0.2",
     "cross-env": "^7.0.2",
     "faker": "^4.1.0",
-    "husky": "^4.2.3",
+    "husky": "^4.2.5",
     "jest": "^25.2.7",
     "lint-staged": "^10.1.1",
     "sqlite3": "^4.1.1",
