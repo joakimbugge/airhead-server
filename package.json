@@ -69,7 +69,7 @@
     "@types/node": "^13.13.4",
     "@types/passport-jwt": "^3.0.3",
     "@types/sharp": "^0.25.0",
-    "@types/supertest": "^2.0.8",
+    "@types/supertest": "^2.0.9",
     "@types/uuid": "^7.0.3",
     "cross-env": "^7.0.2",
     "faker": "^4.1.0",
