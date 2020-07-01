@@ -76,7 +76,7 @@
     "husky": "^4.2.5",
     "jest": "^25.5.4",
     "lint-staged": "^10.2.11",
-    "sqlite3": "^4.2.0",
+    "sqlite3": "^5.0.0",
     "supertest": "^4.0.2",
     "ts-jest": "^25.5.1",
     "ts-loader": "^7.0.5",
