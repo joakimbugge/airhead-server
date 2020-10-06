@@ -7,8 +7,8 @@ import { User } from '../../user/domain/User';
 export default class CreateUsers implements Seeder {
   public async run(factory: Factory, connection: Connection): Promise<any> {
     await factory(User)().map(async (user: User) => {
-      user.products = await factory(Product)().seedMany(10);
+      user.products = await factory(Product)().createMany(10);
       return user;
-    }).seedMany(5);
+    }).createMany(5);
   }
 }
