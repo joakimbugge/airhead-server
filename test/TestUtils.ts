@@ -7,19 +7,18 @@ import { getExceptionFilters, getInterceptors, getPipes } from '../src/server/he
 import { metadata } from '../src/server/metadata';
 
 export abstract class TestUtils {
-  public static storageService = {
+  private static storageService = {
     composeCdnUrl: () => '',
     upload: () => new Promise(resolve => resolve()),
     delete: () => new Promise(resolve => resolve()),
   };
 
-  public static logService = {
+  private static logService = {
     info: () => null,
     error: () => null,
   };
 
   public static createApplication(): Promise<TestingModule> {
-
     return Test.createTestingModule(metadata)
                .overrideProvider(StorageService)
                .useValue(this.storageService)
