@@ -37,7 +37,7 @@ export class StorageService {
   }
 
   public upload(path: string, file: Buffer, contentType: string): Promise<void | AWSError> {
-    return new Promise(((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.s3.putObject({
         Bucket: this.config.env.DO_SPACES_NAME,
         Key: StorageService.composeEnvironmentalPath(path),
@@ -51,7 +51,7 @@ export class StorageService {
 
         resolve();
       });
-    }));
+    });
   }
 
   public delete(path: string): Promise<void> {
