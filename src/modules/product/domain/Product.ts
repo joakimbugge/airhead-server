@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import {
   Column,
-  CreateDateColumn,
+  CreateDateColumn, DeleteDateColumn,
   Entity,
   Index,
   ManyToOne,
@@ -47,7 +47,7 @@ export class Product {
   @Exclude({ toPlainOnly: true })
   public updatedAt: Date;
 
-  @Column({ nullable: true })
+  @DeleteDateColumn()
   @Exclude({ toPlainOnly: true })
   public deletedAt: Date;
 }

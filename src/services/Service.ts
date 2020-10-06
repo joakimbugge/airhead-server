@@ -5,11 +5,11 @@ export abstract class Service<T> {
   }
 
   public find(conditions: FindConditions<T>, options?: FindOneOptions<T>): Promise<T | undefined> {
-    return this.repository.findOne({ deletedAt: IsNull(), ...conditions }, options);
+    return this.repository.findOne(conditions, options);
   }
 
   public findMany(conditions: FindConditions<T>): Promise<T[]> {
-    return this.repository.find({ deletedAt: IsNull(), ...conditions });
+    return this.repository.find(conditions);
   }
 
   public findById(id: number): Promise<T> {
@@ -17,7 +17,7 @@ export abstract class Service<T> {
   }
 
   public get(conditions: FindConditions<T>, options?: FindOneOptions<T>): Promise<T> {
-    return this.repository.findOneOrFail({ deletedAt: IsNull(), ...conditions }, options);
+    return this.repository.findOneOrFail(conditions, options);
   }
 
   public save(entity: T): Promise<T> {
@@ -26,8 +26,7 @@ export abstract class Service<T> {
 
   public delete(entity: T, softDelete = true): Promise<T> {
     if (softDelete) {
-      (entity as any).deletedAt = new Date();
-      return this.repository.save(entity);
+      return this.repository.softRemove(entity);
     }
 
     return this.repository.remove(entity);
@@ -35,7 +34,7 @@ export abstract class Service<T> {
 
   public deleteMany(entities: T[], softDelete = true): Promise<T[]> {
     if (softDelete) {
-      return this.repository.save(entities.map(entity => (entity as any).deletedAt = new Date()) as any[]);
+      return this.repository.softRemove(entities);
     }
 
     return this.repository.remove(entities);

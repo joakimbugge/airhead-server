@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ResetPasswordToken } from '../../authentication/domain/ResetPasswordToken';
 import { Product } from '../../product/domain/Product';
 import { UserRole } from '../enums/UserRole';
@@ -37,7 +45,7 @@ export class User {
   @Exclude({ toPlainOnly: true })
   public updatedAt: Date;
 
-  @Column({ nullable: true })
+  @DeleteDateColumn()
   @Exclude({ toPlainOnly: true })
   public deletedAt: Date;
 
