@@ -1,6 +1,6 @@
 /* eslint-disable jest/expect-expect */
 import { INestApplication } from '@nestjs/common';
-import { BAD_REQUEST, CREATED, NO_CONTENT, UNAUTHORIZED } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import * as request from 'supertest';
 import { ResetPasswordToken } from '../../src/modules/authentication/domain/ResetPasswordToken';
 import { User } from '../../src/modules/user/domain/User';
@@ -26,25 +26,31 @@ describe('Login', () => {
     return request(app.getHttpServer())
       .post(URL)
       .send({ username: 'john', password: '123' })
-      .expect(CREATED)
+      .expect(StatusCodes.CREATED)
       .then(({ body: { token } }) => {
         expect(token).toMatch(TestHelpers.JWT_REGEX);
       });
   });
 
   test('Return 401 on invalid password', async () => {
-    return request(app.getHttpServer()).post(URL).send({ username: 'john', password: '789' }).expect(UNAUTHORIZED);
+    return request(app.getHttpServer())
+      .post(URL)
+      .send({ username: 'john', password: '789' })
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   test('Return 401 on invalid username', async () => {
-    return request(app.getHttpServer()).post(URL).send({ username: 'jerry', password: '123' }).expect(UNAUTHORIZED);
+    return request(app.getHttpServer())
+      .post(URL)
+      .send({ username: 'jerry', password: '123' })
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
       .post(URL)
       .send({ username: 'jerry' })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 });
@@ -53,18 +59,18 @@ describe('Reset password', () => {
   const URL = '/reset-password';
 
   test('Return 201 on known email', () => {
-    return request(app.getHttpServer()).post(URL).send({ email: 'john@example.com' }).expect(CREATED);
+    return request(app.getHttpServer()).post(URL).send({ email: 'john@example.com' }).expect(StatusCodes.CREATED);
   });
 
   test('Return 201 as a disguise for error on unknown email', () => {
-    return request(app.getHttpServer()).post(URL).send({ email: 'jerry@example.org' }).expect(CREATED);
+    return request(app.getHttpServer()).post(URL).send({ email: 'jerry@example.org' }).expect(StatusCodes.CREATED);
   });
 
   test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
       .post(URL)
       .send({})
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 });
@@ -86,22 +92,22 @@ describe('Reset password: Change password', () => {
     return request(app.getHttpServer())
       .put(`${URL}/${token.hash}`)
       .send({ password: '1234', repeatPassword: '1234' })
-      .expect(NO_CONTENT)
-      .then(() => verifyLogin('1234', CREATED))
-      .then(() => verifyLogin('123', UNAUTHORIZED));
+      .expect(StatusCodes.NO_CONTENT)
+      .then(() => verifyLogin('1234', StatusCodes.CREATED))
+      .then(() => verifyLogin('123', StatusCodes.UNAUTHORIZED));
   });
 
   test('Return 201 as a disguised error on invalid token', () => {
     return request(app.getHttpServer())
       .put(`${URL}/1234`)
       .send({ password: '123', repeatPassword: '123' })
-      .expect(NO_CONTENT);
+      .expect(StatusCodes.NO_CONTENT);
   });
 
   test('Return 400 on invalid payload', () => {
     return request(app.getHttpServer())
       .put(`${URL}/${token.hash}`)
       .send({ password: '123', repeatPassword: '1234' })
-      .expect(BAD_REQUEST);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 });

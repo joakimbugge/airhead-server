@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment,jest/expect-expect */
 import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
-import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
-import { User } from '../../src/modules/user/domain/User';
+import { StatusCodes } from 'http-status-codes';
 import * as request from 'supertest';
+import { User } from '../../src/modules/user/domain/User';
 import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
 
@@ -29,7 +29,7 @@ describe('Get products', () => {
     return request(app.getHttpServer())
       .get(URL)
       .auth(token, { type: 'bearer' })
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         expect(body).toHaveLength(0);
       });
@@ -42,7 +42,7 @@ describe('Get products', () => {
     return request(app.getHttpServer())
       .get(URL)
       .auth(token, { type: 'bearer' })
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         expect(body).toHaveLength(2);
         expect(body).toContainEqual(classToPlain(firstProduct));
@@ -65,8 +65,8 @@ describe('Get product', () => {
     return request(app.getHttpServer())
       .get(`${URL}/999`)
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 200 and product', async () => {
@@ -75,7 +75,7 @@ describe('Get product', () => {
     return request(app.getHttpServer())
       .get(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         expect(body).toEqual(classToPlain(product));
       });
@@ -97,7 +97,7 @@ describe('Create product', () => {
       .post(URL)
       .auth(token, { type: 'bearer' })
       .send({ amount: 1, amountThreshold: 2 })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -106,7 +106,7 @@ describe('Create product', () => {
       .post(URL)
       .auth(token, { type: 'bearer' })
       .send({ name: 'Pizza', amount: 'one', amountThreshold: 2 })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -117,7 +117,7 @@ describe('Create product', () => {
       .post(URL)
       .auth(token, { type: 'bearer' })
       .send(createdProduct)
-      .expect(CREATED)
+      .expect(StatusCodes.CREATED)
       .then(({ body }) => {
         expect(body).toEqual({
           id: expect.any(Number),
@@ -145,7 +145,7 @@ describe('Update product', () => {
       .put(`${URL}/${product.id}`)
       .auth(token, { type: 'bearer' })
       .send(changedProduct)
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -157,8 +157,8 @@ describe('Update product', () => {
       .put(`${URL}/${otherProduct.id}`)
       .auth(token, { type: 'bearer' })
       .send({ name: 'Pizza', amount: 3, amountThreshold: 2 })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 200 on updated product', async () => {
@@ -169,7 +169,7 @@ describe('Update product', () => {
       .put(`${URL}/${product.id}`)
       .auth(token, { type: 'bearer' })
       .send(updatedProduct)
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         expect(body).toEqual(updatedProduct);
       });
@@ -190,8 +190,8 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`${URL}/999`)
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 404 on product owned by another user', async () => {
@@ -201,8 +201,8 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`${URL}/${otherProduct.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 200 and deleted product', async () => {
@@ -211,7 +211,7 @@ describe('Delete product', () => {
     return request(app.getHttpServer())
       .delete(`/products/${product.id}`)
       .auth(token, { type: 'bearer' })
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         expect(body).toEqual(classToPlain(product));
       });

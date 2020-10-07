@@ -1,7 +1,7 @@
 import { Body, Controller, Param, Post, Put, Res } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { BAD_REQUEST, CREATED, NO_CONTENT } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { MoreThanOrEqual } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
@@ -30,8 +30,8 @@ export class AuthenticationController {
   ) {}
 
   @Post('login')
-  @ApiResponse({ status: CREATED, type: LoginResponseDto })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.CREATED, type: LoginResponseDto })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
   public async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     const { username, password } = loginDto;
 
@@ -41,8 +41,8 @@ export class AuthenticationController {
   }
 
   @Post('reset-password')
-  @ApiResponse({ status: CREATED })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.CREATED })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
   public async forgotPassword(@Body() resetPasswordDto: ResetPasswordDto, @Res() response: Response): Promise<void> {
     const { email } = resetPasswordDto;
     const { RESET_PASSWORD_TOKEN_HOURS_LIFETIME } = this.config.env;
@@ -51,7 +51,7 @@ export class AuthenticationController {
     if (!user) {
       // Successful response to prevent user look-up
       this.logService.error(`Failed to create token for unknown email ${email}`, this.constructor.name);
-      response.status(CREATED).send();
+      response.status(StatusCodes.CREATED).send();
       return;
     }
 
@@ -62,12 +62,12 @@ export class AuthenticationController {
 
     await this.resetPasswordService.save(token);
 
-    response.status(CREATED).send();
+    response.status(StatusCodes.CREATED).send();
   }
 
   @Put('reset-password/:hash')
-  @ApiResponse({ status: NO_CONTENT })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.NO_CONTENT })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
   public async updatePassword(
     @Param('hash') hash: string,
     @Body() updatePassword: UpdatePasswordDto,
@@ -88,7 +88,7 @@ export class AuthenticationController {
     if (!token) {
       // Successful response to prevent token look-up
       this.logService.error(`No token found for hash ${hash}`, this.constructor.name);
-      response.status(NO_CONTENT).send();
+      response.status(StatusCodes.NO_CONTENT).send();
       return;
     }
 
@@ -98,6 +98,6 @@ export class AuthenticationController {
     await this.userService.save(user);
     await this.resetPasswordService.delete(token, false);
 
-    response.status(NO_CONTENT).send();
+    response.status(StatusCodes.NO_CONTENT).send();
   }
 }

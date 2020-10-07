@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-standalone-expect */
 import { INestApplication } from '@nestjs/common';
 import * as faker from 'faker';
-import { BAD_REQUEST, getStatusText } from 'http-status-codes';
+import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import * as path from 'path';
 import * as request from 'supertest';
 import { getRepository } from 'typeorm';
@@ -91,10 +91,10 @@ export abstract class TestHelpers {
     return <string>response.body.token;
   }
 
-  public static expectErrorResponse({ body }: request.Response, statusCode: number = BAD_REQUEST): void {
-    expect(body).toEqual(expect.objectContaining({ statusCode, error: getStatusText(statusCode) }));
+  public static expectErrorResponse({ body }: request.Response, statusCode: number = StatusCodes.BAD_REQUEST): void {
+    expect(body).toEqual(expect.objectContaining({ statusCode, error: getReasonPhrase(statusCode) }));
 
-    if (statusCode === BAD_REQUEST) {
+    if (statusCode === StatusCodes.BAD_REQUEST) {
       expect(body).toHaveProperty('message');
       expect(Array.isArray(body.message)).toBeTruthy();
       expect(body.message.length).toBeGreaterThan(0);

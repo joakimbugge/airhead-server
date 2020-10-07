@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment,jest/expect-expect */
 import { INestApplication } from '@nestjs/common';
-import { BAD_REQUEST, CREATED } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import * as request from 'supertest';
 import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
@@ -26,7 +26,7 @@ describe('Create new user', () => {
     return request(app.getHttpServer())
       .post(URL)
       .send(user)
-      .expect(CREATED)
+      .expect(StatusCodes.CREATED)
       .then(({ body }) => {
         expect(body).toEqual({
           id: expect.any(Number),
@@ -40,7 +40,7 @@ describe('Create new user', () => {
     return request(app.getHttpServer())
       .post(URL)
       .send({ username: 'jim', email: 'jim@example.org' })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -54,7 +54,7 @@ describe('Create new user', () => {
         password: '123',
         email: 'random@example.com',
       })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -68,7 +68,7 @@ describe('Create new user', () => {
         password: '123',
         email: user.email,
       })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 });

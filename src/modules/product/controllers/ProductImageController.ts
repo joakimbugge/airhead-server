@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
 import { ApiNotFoundException } from '../../../docs/exceptions/ApiNotFoundException';
 import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthorizedException';
@@ -32,9 +32,9 @@ export class ProductImageController {
 
   @Get('/:id/images')
   @Authenticated()
-  @ApiResponse({ status: OK, type: [ProductImage] })
-  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: [ProductImage] })
+  @ApiResponse({ status: StatusCodes.NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public async getImage(@Param('id') id: number, @Authed() user: User): Promise<ProductImage[]> {
     const product = await this.productService.get({ id, user });
     return await this.productImageService.findMany({ product });
@@ -45,10 +45,10 @@ export class ProductImageController {
   @Authenticated()
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadImageDto })
-  @ApiResponse({ status: CREATED, type: ProductImage })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
-  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.CREATED, type: ProductImage })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public async uploadImage(
     @Param('id') id: number,
     @UploadedFile() file: UploadImageDto,
@@ -85,9 +85,9 @@ export class ProductImageController {
 
   @Delete('/:id/images/:imageId')
   @Authenticated()
-  @ApiResponse({ status: OK, type: ProductImage })
-  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: ProductImage })
+  @ApiResponse({ status: StatusCodes.NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public async deleteImage(
     @Param('id') id: number,
     @Param('imageId') imageId: number,

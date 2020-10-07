@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ValidationError } from 'class-validator';
-import { BAD_REQUEST, CREATED, NOT_FOUND, OK, UNAUTHORIZED } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { ApiBadRequestException } from '../../../docs/exceptions/ApiBadRequestException';
 import { ApiNotFoundException } from '../../../docs/exceptions/ApiNotFoundException';
 import { ApiUnauthorizedException } from '../../../docs/exceptions/ApiUnauthorizedException';
@@ -36,8 +36,8 @@ export class ProductController {
 
   @Get('/')
   @Authenticated()
-  @ApiResponse({ status: OK, type: [Product] })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: [Product] })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public findMany(@Authed() user: User): Promise<Product[]> {
     return this.productService.findMany({ user });
   }
@@ -45,8 +45,8 @@ export class ProductController {
   @Get('/search')
   @Authenticated()
   @ApiQuery({ name: 'minLikeness', required: false, type: Number })
-  @ApiResponse({ status: OK, type: [FuzzySearchItem] })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: [FuzzySearchItem] })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public search(
     @Query('term') term: string,
     @Query('minLikeness', new ParseIntPipe()) minLikeness = this.MIN_LIKENESS,
@@ -61,18 +61,18 @@ export class ProductController {
 
   @Get('/:id')
   @Authenticated()
-  @ApiResponse({ status: OK, type: Product })
-  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: Product })
+  @ApiResponse({ status: StatusCodes.NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public get(@Param('id', new ParseIntPipe()) id: number, @Authed() user: User): Promise<Product> {
     return this.productService.get({ id, user });
   }
 
   @Post('/')
   @Authenticated()
-  @ApiResponse({ status: CREATED, type: Product })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.CREATED, type: Product })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public create(@Body() createProductDto: CreateProductDto, @Authed() user: User): Promise<Product> {
     const product = new Product();
 
@@ -86,9 +86,9 @@ export class ProductController {
 
   @Put('/:id')
   @Authenticated()
-  @ApiResponse({ status: OK, type: Product })
-  @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: Product })
+  @ApiResponse({ status: StatusCodes.BAD_REQUEST, type: ApiBadRequestException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public async update(
     @Param('id', new ParseIntPipe()) id: number,
     @Body() updateProductDto: UpdateProductDto,
@@ -105,9 +105,9 @@ export class ProductController {
 
   @Delete('/:id')
   @Authenticated()
-  @ApiResponse({ status: OK, type: Product })
-  @ApiResponse({ status: NOT_FOUND, type: ApiNotFoundException })
-  @ApiResponse({ status: UNAUTHORIZED, type: ApiUnauthorizedException })
+  @ApiResponse({ status: StatusCodes.OK, type: Product })
+  @ApiResponse({ status: StatusCodes.NOT_FOUND, type: ApiNotFoundException })
+  @ApiResponse({ status: StatusCodes.UNAUTHORIZED, type: ApiUnauthorizedException })
   public async delete(@Param('id', new ParseIntPipe()) id: number, @Authed() user: User): Promise<Product> {
     const product = await this.productService.get({ id }, { relations: ['user'] });
 

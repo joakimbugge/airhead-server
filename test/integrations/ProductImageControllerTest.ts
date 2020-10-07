@@ -1,7 +1,7 @@
 /* eslint-disable jest/expect-expect,@typescript-eslint/no-unsafe-assignment */
 import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
-import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import * as request from 'supertest';
 import { Product } from '../../src/modules/product/domain/Product';
 import { User } from '../../src/modules/user/domain/User';
@@ -32,7 +32,7 @@ describe('Upload image', () => {
     return request(app.getHttpServer())
       .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -43,7 +43,7 @@ describe('Upload image', () => {
       .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
-      .expect(BAD_REQUEST)
+      .expect(StatusCodes.BAD_REQUEST)
       .then(res => TestHelpers.expectErrorResponse(res));
   });
 
@@ -56,8 +56,8 @@ describe('Upload image', () => {
       .post(getUrl(otherProduct.id))
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 404 on unknown product', () => {
@@ -67,8 +67,8 @@ describe('Upload image', () => {
       .post(getUrl(999))
       .auth(token, { type: 'bearer' })
       .attach('file', filePath)
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 201 and product image', async () => {
@@ -78,7 +78,7 @@ describe('Upload image', () => {
       .post(getUrl(product.id))
       .auth(token, { type: 'bearer' })
       .attach('file', imagePath)
-      .expect(CREATED)
+      .expect(StatusCodes.CREATED)
       .then(({ body }) => {
         expect(body).toMatchObject({
           id: expect.any(Number),
@@ -110,16 +110,16 @@ describe('Delete image', () => {
     return request(app.getHttpServer())
       .delete(getUrl(otherProduct.id, otherProductImage.id))
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 404 on non-existing image', () => {
     return request(app.getHttpServer())
       .delete(getUrl(product.id, 999))
       .auth(token, { type: 'bearer' })
-      .expect(NOT_FOUND)
-      .then(res => TestHelpers.expectErrorResponse(res, NOT_FOUND));
+      .expect(StatusCodes.NOT_FOUND)
+      .then(res => TestHelpers.expectErrorResponse(res, StatusCodes.NOT_FOUND));
   });
 
   test('Return 200 and product image', async () => {
@@ -128,7 +128,7 @@ describe('Delete image', () => {
     return request(app.getHttpServer())
       .delete(getUrl(product.id, productImage.id))
       .auth(token, { type: 'bearer' })
-      .expect(OK)
+      .expect(StatusCodes.OK)
       .then(({ body }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, ...deletedProductImage } = classToPlain(productImage);
