@@ -1,18 +1,18 @@
 import { ValidationError } from 'class-validator';
 
-interface Contraints {
-  [key: string]: string
+export interface Constraints {
+  [key: string]: string;
 }
 
 export abstract class ValidationUtils {
-  public static createError(property: string, target: any, contraints: Contraints) {
+  public static createError(property: string, target: unknown, constraints: Constraints): ValidationError {
     const error = new ValidationError();
 
     error.property = property;
     error.children = [];
     error.target = target;
-    error.constraints = contraints;
+    error.constraints = constraints;
 
     return error;
-  };
+  }
 }

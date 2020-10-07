@@ -6,5 +6,4 @@ import { StorageService } from './services/StorageService';
   providers: [StorageService],
   exports: [StorageService],
 })
-export class SharedModule {
-}
+export class SharedModule {}

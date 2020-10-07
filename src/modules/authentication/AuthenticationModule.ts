@@ -12,5 +12,4 @@ import { JwtPassportStrategy } from './strategies/JwtPassportStrategy';
   controllers: [AuthenticationController],
   providers: [JwtPassportStrategy, AuthenticationService, ResetPasswordService],
 })
-export class AuthenticationModule {
-}
+export class AuthenticationModule {}

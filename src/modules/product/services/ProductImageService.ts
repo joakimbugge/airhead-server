@@ -11,9 +11,7 @@ import { FormatImageOptions } from '../interfaces/FormatImageOptions';
 
 @Injectable()
 export class ProductImageService extends Service<ProductImage> {
-  constructor(
-    @InjectRepository(ProductImage) private readonly productImageRepository: Repository<ProductImage>,
-  ) {
+  constructor(@InjectRepository(ProductImage) private readonly productImageRepository: Repository<ProductImage>) {
     super(productImageRepository);
   }
 
@@ -30,10 +28,12 @@ export class ProductImageService extends Service<ProductImage> {
     const image = ProductImageService.toSharp(buffer);
 
     try {
-      return await image.resize(maxWidth, maxHeight, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      }).toBuffer();
+      return await image
+        .resize(maxWidth, maxHeight, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .toBuffer();
     } catch (e) {
       throw new UnsupportedImageTypeException();
     }

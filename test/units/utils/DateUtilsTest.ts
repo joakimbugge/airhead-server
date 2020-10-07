@@ -3,8 +3,7 @@ import { DateUtils } from '../../../src/utils/DateUtils';
 
 const formatRegex = /^\d\d\d\d-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01]) (0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]).[0-9]{6}$/;
 
-const formatDate = (date: Date): string =>
-  format(date, 'yyyy-MM-dd HH:mm:ss.SSSSSS');
+const formatDate = (date: Date): string => format(date, 'yyyy-MM-dd HH:mm:ss.SSSSSS');
 
 describe('format()', () => {
   it('returns formatted version of specified date', () => {

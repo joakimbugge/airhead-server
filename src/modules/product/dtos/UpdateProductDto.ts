@@ -1,4 +1,3 @@
 import { CreateProductDto } from './CreateProductDto';
 
-export class UpdateProductDto extends CreateProductDto {
-}
+export class UpdateProductDto extends CreateProductDto {}

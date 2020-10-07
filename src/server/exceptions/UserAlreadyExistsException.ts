@@ -1,2 +1,1 @@
-export class UserAlreadyExistsException extends Error {
-}
+export class UserAlreadyExistsException extends Error {}

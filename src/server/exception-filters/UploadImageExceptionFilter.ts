@@ -8,9 +8,7 @@ export class UploadImageExceptionFilter implements ExceptionFilter {
   public catch(exception: UploadImageException, host: ArgumentsHost): void {
     new ErrorResponse()
       .statusCode(HttpStatus.BAD_REQUEST)
-      .message([
-        ValidationUtils.createError('file', {}, { file: exception.message }),
-      ])
+      .message([ValidationUtils.createError('file', {}, { file: exception.message })])
       .send(host);
   }
 }

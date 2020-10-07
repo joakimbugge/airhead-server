@@ -32,8 +32,7 @@ export class ProductController {
   private readonly MINE_TERM_LENGTH = 3;
   private readonly MIN_LIKENESS = 10;
 
-  constructor(private readonly productService: ProductService) {
-  }
+  constructor(private readonly productService: ProductService) {}
 
   @Get('/')
   @Authenticated()

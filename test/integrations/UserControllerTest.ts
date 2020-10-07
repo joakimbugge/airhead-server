@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,jest/expect-expect */
 import { INestApplication } from '@nestjs/common';
 import { BAD_REQUEST, CREATED } from 'http-status-codes';
 import * as request from 'supertest';

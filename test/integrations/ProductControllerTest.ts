@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment,jest/expect-expect */
 import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
-import { User } from 'src/modules/user/domain/User';
+import { User } from '../../src/modules/user/domain/User';
 import * as request from 'supertest';
 import { TestHelpers } from '../TestHelpers';
 import { TestUtils } from '../TestUtils';
@@ -29,7 +30,7 @@ describe('Get products', () => {
       .get(URL)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async ({ body }) => {
+      .then(({ body }) => {
         expect(body).toHaveLength(0);
       });
   });
@@ -42,7 +43,7 @@ describe('Get products', () => {
       .get(URL)
       .auth(token, { type: 'bearer' })
       .expect(OK)
-      .then(async ({ body }) => {
+      .then(({ body }) => {
         expect(body).toHaveLength(2);
         expect(body).toContainEqual(classToPlain(firstProduct));
         expect(body).toContainEqual(classToPlain(secondProduct));

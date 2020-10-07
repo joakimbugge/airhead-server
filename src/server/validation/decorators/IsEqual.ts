@@ -9,19 +9,19 @@ import {
 @ValidatorConstraint({ name: 'IsEqual' })
 class IsEqualConstraint implements ValidatorConstraintInterface {
   public defaultMessage(validationArguments?: ValidationArguments): string {
-    const [relatedPropertyName] = validationArguments.constraints;
+    const [relatedPropertyName] = <string[]>validationArguments.constraints;
     return `${validationArguments.property} has to be equal ${relatedPropertyName}`;
   }
 
-  public validate(value: any, validationArguments?: ValidationArguments): Promise<boolean> | boolean {
-    const [relatedPropertyName] = validationArguments.constraints;
-    const relatedValue = validationArguments.object[relatedPropertyName];
+  public validate(value: unknown, validationArguments: ValidationArguments): boolean {
+    const [relatedPropertyName] = <string[]>validationArguments.constraints;
+    const relatedValue: unknown = validationArguments.object[relatedPropertyName];
     return validationArguments.value === relatedValue;
   }
 }
 
 export function IsEqual(property: string, validationOptions?: ValidationOptions) {
-  return (object: object, propertyName: string) => {
+  return (object: unknown, propertyName: string): void => {
     registerDecorator({
       name: 'isEqual',
       target: object.constructor,

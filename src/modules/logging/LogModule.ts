@@ -6,5 +6,4 @@ import { LogService } from './services/LogService';
   providers: [LogService],
   exports: [LogService],
 })
-export class LogModule {
-}
+export class LogModule {}

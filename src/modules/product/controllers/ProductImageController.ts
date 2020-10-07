@@ -28,8 +28,7 @@ export class ProductImageController {
     private readonly productImageService: ProductImageService,
     private readonly configService: ConfigService,
     private readonly storageService: StorageService,
-  ) {
-  }
+  ) {}
 
   @Get('/:id/images')
   @Authenticated()

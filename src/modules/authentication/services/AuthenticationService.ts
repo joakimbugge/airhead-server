@@ -13,14 +13,10 @@ import { VerifiedBearerToken } from '../domain/VerifiedBearerToken';
 export class AuthenticationService {
   private readonly THREE_HOURS = 3 * 2400;
 
-  constructor(
-    private readonly userService: UserService,
-    private readonly configService: ConfigService,
-  ) {
-  }
+  constructor(private readonly userService: UserService, private readonly configService: ConfigService) {}
 
   public async authenticate(username: string, password: string): Promise<User> {
-    let user;
+    let user: User;
 
     try {
       user = await this.userService.get({ username });

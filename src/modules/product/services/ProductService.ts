@@ -13,14 +13,11 @@ export class ProductService extends Service<Product> {
     super(productRepository);
   }
 
-  public async search(
-    term: string,
-    user: User,
-    minAllowedLikeness: number = 10,
-  ): Promise<Array<FuzzySearchItem<Product>>> {
+  public async search(term: string, user: User, minAllowedLikeness = 10): Promise<Array<FuzzySearchItem<Product>>> {
     const products = await this.findMany({ user });
 
-    return products.map(product => new FuzzySearchItem(fuzzball.ratio(product.name, term), product))
+    return products
+      .map(product => new FuzzySearchItem(fuzzball.ratio(product.name, term), product))
       .filter(searchItem => searchItem.likeness >= minAllowedLikeness)
       .sort((a, b) => b.likeness - a.likeness);
   }

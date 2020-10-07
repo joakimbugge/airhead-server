@@ -5,8 +5,7 @@ import { UserRole } from '../../modules/user/enums/UserRole';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
-  constructor(private readonly role: UserRole) {
-  }
+  constructor(private readonly role: UserRole) {}
 
   public canActivate(context: ExecutionContext): boolean {
     const user: User = context.switchToHttp().getRequest<Request>().user as User;

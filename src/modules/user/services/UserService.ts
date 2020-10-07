@@ -6,6 +6,10 @@ import { Service } from '../../../services/Service';
 import { User } from '../domain/User';
 import { SqlError } from '../enums/SqlError';
 
+interface Error {
+  code: SqlError;
+}
+
 @Injectable()
 export class UserService extends Service<User> {
   constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {
@@ -15,13 +19,13 @@ export class UserService extends Service<User> {
   public async save(user: User): Promise<User> {
     try {
       return await this.userRepository.save(user);
-    } catch (err) {
-      switch (err.code) {
+    } catch (error) {
+      switch ((<Error>error).code) {
         case SqlError.PostgresUniqueViolation:
         case SqlError.SqliteConstraint:
           throw new UserAlreadyExistsException('Username or email already in use');
         default:
-          throw err;
+          throw error;
       }
     }
   }

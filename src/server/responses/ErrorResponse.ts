@@ -2,6 +2,13 @@
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { getStatusText } from 'http-status-codes';
+import { Response } from 'express';
+
+interface Output {
+  statusCode: number;
+  error: string;
+  message: ValidationError[];
+}
 
 export class ErrorResponse {
   private _statusCode: HttpStatus = HttpStatus.BAD_REQUEST;
@@ -26,12 +33,12 @@ export class ErrorResponse {
 
   public send(host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<Response>();
 
-    const output = {
+    const output: Partial<Output> = {
       statusCode: this._statusCode,
       error: this._error,
-    } as any;
+    };
 
     if (this._message) {
       output.message = this._message;

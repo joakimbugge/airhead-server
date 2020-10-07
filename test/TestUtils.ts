@@ -20,11 +20,11 @@ export abstract class TestUtils {
 
   public static createApplication(): Promise<TestingModule> {
     return Test.createTestingModule(metadata)
-               .overrideProvider(StorageService)
-               .useValue(this.storageService)
-               .overrideProvider(LogService)
-               .useValue(this.logService)
-               .compile();
+      .overrideProvider(StorageService)
+      .useValue(this.storageService)
+      .overrideProvider(LogService)
+      .useValue(this.logService)
+      .compile();
   }
 
   public static async startApplication(): Promise<INestApplication> {

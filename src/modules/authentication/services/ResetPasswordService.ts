@@ -6,9 +6,7 @@ import { ResetPasswordToken } from '../domain/ResetPasswordToken';
 
 @Injectable()
 export class ResetPasswordService extends Service<ResetPasswordToken> {
-  constructor(
-    @InjectRepository(ResetPasswordToken) repository: Repository<ResetPasswordToken>,
-  ) {
+  constructor(@InjectRepository(ResetPasswordToken) repository: Repository<ResetPasswordToken>) {
     super(repository);
   }
 }

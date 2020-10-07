@@ -1,5 +1,5 @@
 export class UnsupportedImageTypeException extends Error {
-  constructor(message: string = 'Unsupported image type') {
+  constructor(message = 'Unsupported image type') {
     super(message);
   }
 }

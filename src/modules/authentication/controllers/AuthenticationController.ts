@@ -27,8 +27,7 @@ export class AuthenticationController {
     private readonly resetPasswordService: ResetPasswordService,
     private readonly config: ConfigService,
     private readonly logService: LogService,
-  ) {
-  }
+  ) {}
 
   @Post('login')
   @ApiResponse({ status: CREATED, type: LoginResponseDto })
@@ -44,10 +43,7 @@ export class AuthenticationController {
   @Post('reset-password')
   @ApiResponse({ status: CREATED })
   @ApiResponse({ status: BAD_REQUEST, type: ApiBadRequestException })
-  public async forgotPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-    @Res() response: Response,
-  ): Promise<void> {
+  public async forgotPassword(@Body() resetPasswordDto: ResetPasswordDto, @Res() response: Response): Promise<void> {
     const { email } = resetPasswordDto;
     const { RESET_PASSWORD_TOKEN_HOURS_LIFETIME } = this.config.env;
     const user = await this.userService.find({ email });
@@ -79,12 +75,15 @@ export class AuthenticationController {
   ): Promise<void> {
     const { password } = updatePassword;
 
-    const token = await this.resetPasswordService.find({
-      hash,
-      expiresAt: MoreThanOrEqual(DateUtils.format(new Date())),
-    }, {
-      relations: ['user'],
-    });
+    const token = await this.resetPasswordService.find(
+      {
+        hash,
+        expiresAt: MoreThanOrEqual(DateUtils.format(new Date())),
+      },
+      {
+        relations: ['user'],
+      },
+    );
 
     if (!token) {
       // Successful response to prevent token look-up

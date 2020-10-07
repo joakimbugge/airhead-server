@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-standalone-expect */
 import { INestApplication } from '@nestjs/common';
 import * as faker from 'faker';
 import { BAD_REQUEST, getStatusText } from 'http-status-codes';
@@ -28,10 +29,7 @@ export abstract class TestHelpers {
     return path.resolve('test/assets/images', fileName);
   }
 
-  public static createUser(
-    username: string = faker.internet.userName(),
-    password: string = '123',
-  ): User {
+  public static createUser(username: string = faker.internet.userName(), password = '123'): User {
     const user = new User();
     user.username = username;
     user.password = HashUtils.createHash(password);
@@ -40,10 +38,7 @@ export abstract class TestHelpers {
     return user;
   }
 
-  public static createProduct(
-    user: User,
-    name: string = faker.commerce.productName(),
-  ): Product {
+  public static createProduct(user: User, name: string = faker.commerce.productName()): Product {
     const product = new Product();
     product.name = name;
     product.amount = 1;
@@ -88,21 +83,15 @@ export abstract class TestHelpers {
     return getRepository(ResetPasswordToken).save(token);
   }
 
-  public static loginUser(user: User, app: INestApplication): Promise<string> {
-    return new Promise(async resolve => {
-      request(app.getHttpServer())
-        .post('/login')
-        .send({ username: user.username, password: '123' })
-        .then(res => {
-          resolve(res.body.token);
-        });
-    });
+  public static async loginUser(user: User, app: INestApplication): Promise<string> {
+    const response = await request(app.getHttpServer())
+      .post('/login')
+      .send({ username: user.username, password: '123' });
+
+    return <string>response.body.token;
   }
 
-  public static expectErrorResponse(
-    { body }: request.Response,
-    statusCode: number = BAD_REQUEST,
-  ): void {
+  public static expectErrorResponse({ body }: request.Response, statusCode: number = BAD_REQUEST): void {
     expect(body).toEqual(expect.objectContaining({ statusCode, error: getStatusText(statusCode) }));
 
     if (statusCode === BAD_REQUEST) {
@@ -110,9 +99,7 @@ export abstract class TestHelpers {
       expect(Array.isArray(body.message)).toBeTruthy();
       expect(body.message.length).toBeGreaterThan(0);
 
-      ['property', 'target', 'constraints']
-        .forEach(property =>
-          expect(body.message[0]).toHaveProperty(property));
+      ['property', 'target', 'constraints'].forEach(property => expect(body.message[0]).toHaveProperty(property));
     }
   }
 }

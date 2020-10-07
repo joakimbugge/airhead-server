@@ -17,4 +17,9 @@ module.exports = {
     'plugin:jest/style',
     'plugin:prettier/recommended'
   ],
+  rules: {
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/restrict-template-expressions": "off"
+  },
 };

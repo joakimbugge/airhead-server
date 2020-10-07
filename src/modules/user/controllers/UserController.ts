@@ -13,8 +13,7 @@ import { UserService } from '../services/UserService';
 @Controller('users')
 @ApiTags('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {
-  }
+  constructor(private readonly userService: UserService) {}
 
   @Get('/me')
   @Authenticated()

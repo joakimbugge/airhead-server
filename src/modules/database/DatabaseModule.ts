@@ -48,9 +48,6 @@ function getOptions(): DatabaseOptions {
 }
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(getOptions()),
-  ],
+  imports: [TypeOrmModule.forRoot(getOptions())],
 })
-export class DatabaseModule {
-}
+export class DatabaseModule {}

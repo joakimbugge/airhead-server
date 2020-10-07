@@ -1,3 +1,4 @@
+/* eslint-disable jest/expect-expect,@typescript-eslint/no-unsafe-assignment */
 import { INestApplication } from '@nestjs/common';
 import { classToPlain } from 'class-transformer';
 import { BAD_REQUEST, CREATED, NOT_FOUND, OK } from 'http-status-codes';
@@ -129,7 +130,7 @@ describe('Delete image', () => {
       .auth(token, { type: 'bearer' })
       .expect(OK)
       .then(({ body }) => {
-        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, ...deletedProductImage } = classToPlain(productImage);
         expect(body).toEqual(deletedProductImage);
       });

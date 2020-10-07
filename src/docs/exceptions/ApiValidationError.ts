@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Constraints } from '../../utils/ValidationUtils';
 
 export class ApiValidationError {
   @ApiProperty({ example: 'firstName' })
@@ -10,5 +11,5 @@ export class ApiValidationError {
       minLength: 'Has to contain at least 2 characters',
     },
   })
-  public constraints: object;
+  public constraints: Constraints;
 }

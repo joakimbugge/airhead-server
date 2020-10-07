@@ -25,13 +25,9 @@ export class LogService {
         format.timestamp(),
         format.printf(info => {
           const zonedDate = utcToZonedTime(info.timestamp, 'Europe/Oslo');
-          const date = dateFormat(zonedDate, 'yyyy-MM-dd\'T\'HH:mm:ss.SSSxxx');
+          const date = dateFormat(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
-          return [
-            [date, info.id, info.level.toUpperCase()].join(' - '),
-            `[${info.context}]`,
-            info.message,
-          ].join(' ');
+          return [[date, info.id, info.level.toUpperCase()].join(' - '), `[${info.context}]`, info.message].join(' ');
         }),
       ),
       transports: [
@@ -82,31 +78,33 @@ export class LogService {
   }
 
   public getRequestMiddleware(): RequestHandler {
-    return morgan((tokens, req, res) => {
-      return [
-        tokens['remote-addr'](req, res),
-        tokens.method(req, res),
-        tokens.url(req, res),
-      ].join(' ');
-    }, {
-      immediate: true,
-      stream: this.getMorganStream('Request'),
-    });
+    return morgan(
+      (tokens, req, res) => {
+        return [tokens['remote-addr'](req, res), tokens.method(req, res), tokens.url(req, res)].join(' ');
+      },
+      {
+        immediate: true,
+        stream: this.getMorganStream('Request'),
+      },
+    );
   }
 
   public getResponseMiddleware(): RequestHandler {
-    return morgan((tokens, req, res) => {
-      return [
-        tokens['remote-addr'](req, res),
-        tokens.method(req, res),
-        tokens.url(req, res),
-        tokens.status(req, res),
-        tokens['response-time'](req, res),
-        'ms',
-      ].join(' ');
-    }, {
-      stream: this.getMorganStream('Response'),
-    });
+    return morgan(
+      (tokens, req, res) => {
+        return [
+          tokens['remote-addr'](req, res),
+          tokens.method(req, res),
+          tokens.url(req, res),
+          tokens.status(req, res),
+          tokens['response-time'](req, res),
+          'ms',
+        ].join(' ');
+      },
+      {
+        stream: this.getMorganStream('Response'),
+      },
+    );
   }
 
   public getIdMiddleware(): RequestHandler {

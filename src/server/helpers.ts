@@ -18,13 +18,9 @@ export function getExceptionFilters(httpServer: HttpServer, logService: LogServi
 }
 
 export function getInterceptors(): NestInterceptor[] {
-  return [
-    new TransformInterceptor(),
-  ];
+  return [new TransformInterceptor()];
 }
 
 export function getPipes(): PipeTransform[] {
-  return [
-    new ValidationPipe({ transform: true, whitelist: true }),
-  ];
+  return [new ValidationPipe({ transform: true, whitelist: true })];
 }
