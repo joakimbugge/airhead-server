@@ -108,8 +108,7 @@
     "testEnvironment": "node"
   },
   "lint-staged": {
-    "*.ts": "npm run lint",
-    "*.tsx": "npm run lint"
+    "*.ts": ["prettier --write", "eslint"]
   },
   "husky": {
     "hooks": {
