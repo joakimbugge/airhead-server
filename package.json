@@ -87,7 +87,7 @@
     "sqlite3": "^5.0.1",
     "supertest": "^4.0.2",
     "ts-jest": "^25.5.1",
-    "ts-loader": "^8.0.13",
+    "ts-loader": "^8.0.14",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
     "typeorm-seeding": "^1.6.1",
